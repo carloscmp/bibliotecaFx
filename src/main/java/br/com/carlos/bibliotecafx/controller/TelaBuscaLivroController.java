@@ -1,29 +1,31 @@
 package br.com.carlos.bibliotecafx.controller;
 
 import br.com.carlos.bibliotecafx.DTO.LivroDTO;
+import br.com.carlos.bibliotecafx.util.ConfigUtil;
 import br.com.carlos.bibliotecafx.util.HttpUtil;
 import br.com.carlos.bibliotecafx.util.LivroAPI;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 public class TelaBuscaLivroController implements Initializable {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private Runnable onBuscaConcluidaCallback;
 
     @FXML
     private TextField txtBusca;
@@ -41,17 +43,21 @@ public class TelaBuscaLivroController implements Initializable {
     private Button btnCarregarImagem;
     @FXML
     private ImageView imageCapa;
+    @FXML
+    private ProgressIndicator progressIndicator;
 
-    private LivroDTO livroSelecionado;
+    public void setOnBuscaConcluidaCallback(Runnable callback) {
+        this.onBuscaConcluidaCallback = callback;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        progressIndicator.setVisible(false);
         colTitulo.setCellValueFactory(new PropertyValueFactory<>("titulo"));
         colAutor.setCellValueFactory(new PropertyValueFactory<>("autor"));
 
         tabelaBuscaLivro.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
             if (novo != null) {
-                livroSelecionado = novo;
                 carregarCapaAutomaticamente(novo.getCapaUrl());
             }
         });
@@ -60,14 +66,90 @@ public class TelaBuscaLivroController implements Initializable {
     @FXML
     public void buscarLivros() {
         String titulo = txtBusca.getText();
-        try {
-            List<LivroDTO> livros = LivroAPI.buscarLivrosPorTitulo(titulo);
-            ObservableList<LivroDTO> lista = FXCollections.observableArrayList(livros);
-            tabelaBuscaLivro.setItems(lista);
-        } catch (Exception e) {
-            e.printStackTrace();
-            mostrarAlerta("Erro ao buscar livros.");
+        if (titulo == null || titulo.isBlank()) {
+            mostrarAlerta("Aviso", "Por favor, digite um termo para a busca.", Alert.AlertType.WARNING);
+            return;
         }
+
+        Task<List<LivroDTO>> buscarTask = new Task<>() {
+            @Override
+            protected List<LivroDTO> call() throws Exception {
+                return LivroAPI.buscarLivrosPorTitulo(titulo);
+            }
+        };
+
+        buscarTask.setOnRunning(e -> {
+            progressIndicator.setVisible(true);
+            btnBuscar.setDisable(true);
+        });
+
+        buscarTask.setOnSucceeded(e -> {
+            tabelaBuscaLivro.setItems(FXCollections.observableArrayList(buscarTask.getValue()));
+            // Lógica de finalização
+            progressIndicator.setVisible(false);
+            btnBuscar.setDisable(false);
+        });
+
+        buscarTask.setOnFailed(e -> {
+            mostrarAlerta("Erro de Busca", "Não foi possível realizar a busca.", Alert.AlertType.ERROR);
+            e.getSource().getException().printStackTrace();
+            // Lógica de finalização
+            progressIndicator.setVisible(false);
+            btnBuscar.setDisable(false);
+        });
+
+        new Thread(buscarTask).start();
+    }
+
+    @FXML
+    public void adicionarLivro() {
+        LivroDTO selecionado = tabelaBuscaLivro.getSelectionModel().getSelectedItem();
+        if (selecionado == null) {
+            mostrarAlerta("Aviso", "Selecione um livro da tabela primeiro.", Alert.AlertType.WARNING);
+            return;
+        }
+
+        Task<Void> adicionarTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                selecionado.prepararParaEnvio();
+                String json = MAPPER.writeValueAsString(selecionado);
+                String url = ConfigUtil.getProperty("server.url");
+                HttpUtil.post(url, json);
+                return null;
+            }
+        };
+
+        adicionarTask.setOnRunning(e -> {
+            progressIndicator.setVisible(true);
+            btnAdicionar.setDisable(true);
+        });
+
+        adicionarTask.setOnSucceeded(e -> {
+            mostrarAlerta("Sucesso", "Livro adicionado com sucesso!", Alert.AlertType.INFORMATION);
+
+            if (onBuscaConcluidaCallback != null) {
+                onBuscaConcluidaCallback.run();
+            }
+
+            // Lógica de finalização
+            progressIndicator.setVisible(false);
+            btnAdicionar.setDisable(false);
+
+            Stage stage = (Stage) btnAdicionar.getScene().getWindow();
+            stage.close();
+        });
+
+        adicionarTask.setOnFailed(e -> {
+            mostrarAlerta("Erro ao Adicionar", "Não foi possível adicionar o livro.", Alert.AlertType.ERROR);
+            e.getSource().getException().printStackTrace();
+            
+            // Lógica de finalização
+            progressIndicator.setVisible(false);
+            btnAdicionar.setDisable(false);
+        });
+
+        new Thread(adicionarTask).start();
     }
 
     private void carregarCapaAutomaticamente(String url) {
@@ -86,48 +168,21 @@ public class TelaBuscaLivroController implements Initializable {
     public void carregarCapaManual() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar Imagem da Capa");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg")
-        );
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
 
         File file = fileChooser.showOpenDialog(imageCapa.getScene().getWindow());
         if (file != null) {
             try (FileInputStream fis = new FileInputStream(file)) {
                 imageCapa.setImage(new Image(fis));
-                // Opcional: salvar caminho/local da imagem no DTO ou em variável
             } catch (Exception e) {
-                mostrarAlerta("Erro ao carregar imagem.");
+                mostrarAlerta("Erro de Imagem", "Não foi possível carregar a imagem local.", Alert.AlertType.ERROR);
             }
         }
     }
 
-    @FXML
-    public void adicionarLivro() {
-        LivroDTO selecionado = tabelaBuscaLivro.getSelectionModel().getSelectedItem();
-        if (selecionado == null) {
-            mostrarAlerta("Selecione um livro primeiro.");
-            return;
-        }
-
-        try {
-            // 🔽 Prepara o DTO para envio (baixa a imagem, se necessário)
-            selecionado.prepararParaEnvio();
-
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(selecionado);
-
-            HttpUtil.post("http://localhost:8080/livro", json);
-
-            mostrarAlerta("Livro adicionado com sucesso!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            mostrarAlerta("Erro ao adicionar livro.");
-        }
-    }
-
-    private void mostrarAlerta(String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Informação");
+    private void mostrarAlerta(String titulo, String mensagem, Alert.AlertType tipo) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
         alert.showAndWait();

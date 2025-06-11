@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="1000.0" style="-fx-background-color: #f4f6f8;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.carlos.bibliotecafx.controller.TelaPrincipalController">
+<BorderPane prefHeight="600.0" prefWidth="1000.0" style="-fx-background-color: #f4f6f8;" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.carlos.bibliotecafx.controller.TelaPrincipalController">
 
     <!-- Topo com botão -->
     <top>
@@ -55,12 +55,11 @@
                             <children>
                                 <Label text="Autor:" />
                                 <Label fx:id="labelAutor" text="Autor aparece aqui" GridPane.columnIndex="1" />
-
-                                <Label text="Ano:" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                <Label fx:id="labelAno" text="Ano aqui" GridPane.rowIndex="1" />
+                                <Label fx:id="labelAno" text="Ano aqui" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                                 <Label text="Páginas:" GridPane.rowIndex="2" />
                                 <Label fx:id="labelPaginas" text="pag aqui" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Label text="Ano:" GridPane.rowIndex="1" />
                             </children>
                             <rowConstraints>
                                 <RowConstraints />

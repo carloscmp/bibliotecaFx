@@ -8,6 +8,7 @@
 <BorderPane prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.carlos.bibliotecafx.controller.TelaBuscaLivroController">
+    <ProgressIndicator fx:id="progressIndicator" layoutX="285.0" layoutY="185.0" />
 
     <top>
         <AnchorPane prefHeight="100.0">

@@ -1,61 +1,60 @@
 package br.com.carlos.bibliotecafx.util;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 
+/**
+ * Classe utilitária para realizar chamadas HTTP.
+ */
 public class HttpUtil {
 
-    public static String get(String urlStr) throws Exception {
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
+    // Cria um cliente HTTP reutilizável com configurações padrão.
+    private static final HttpClient client = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_2)
+            .connectTimeout(Duration.ofSeconds(10)) // Timeout de 10 segundos para conectar
+            .build();
 
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)
-        );
+    /**
+     * Realiza uma requisição HTTP GET para a URL especificada.
+     *
+     * @param url A URL para a qual a requisição será feita.
+     * @return O corpo da resposta como uma String.
+     * @throws IOException Se a requisição falhar, se o status não for 200 (OK),
+     * ou se ocorrer um timeout.
+     */
+    public static String get(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
 
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            response.append(line);
+        // Envia a requisição e espera a resposta
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        // Verifica se a requisição foi bem-sucedida
+        if (response.statusCode() != 200) {
+            throw new IOException("Falha na requisição HTTP: Status code " + response.statusCode());
         }
-        reader.close();
 
-        return response.toString();
+        return response.body();
     }
 
-    public static String post(String urlStr, String json) throws Exception {
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setDoOutput(true);
+    // Adicione aqui o método post se ainda não o tiver, ou o mantenha se já existir.
+    public static void post(String url, String json) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
-        // Escreve o corpo JSON
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = json.getBytes(StandardCharsets.UTF_8);
-            os.write(input);
-            os.flush();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 && response.statusCode() != 201) { // 201 = Created
+            throw new IOException("Falha na requisição HTTP POST: Status code " + response.statusCode());
         }
-
-        int status = conn.getResponseCode();
-
-        InputStream responseStream = (status < 400) ? conn.getInputStream() : conn.getErrorStream();
-        String response = new BufferedReader(new InputStreamReader(responseStream, StandardCharsets.UTF_8))
-                .lines().collect(Collectors.joining("\n"));
-
-        if (status >= 400) {
-            System.err.println("Erro do servidor: " + response);
-            throw new RuntimeException("Erro HTTP: " + status);
-        }
-
-        return response;
     }
 }
