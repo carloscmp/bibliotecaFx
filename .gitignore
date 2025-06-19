@@ -1,4 +1,7 @@
-/src/main/resources/
+# Arquivo de configuração local com segredos. NUNCA commitar.
+# Use o arquivo .template como base.
+/src/main/resources/config.properties
+
 # Created by https://www.toptal.com/developers/gitignore/api/netbeans,eclipse,java,maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=netbeans,eclipse,java,maven
 
@@ -124,5 +127,3 @@ nbdist/
 .nb-gradle/
 
 # End of https://www.toptal.com/developers/gitignore/api/netbeans,eclipse,java,maven
-
-config.properties
