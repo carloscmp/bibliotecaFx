@@ -19,10 +19,10 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 public class TelaPrincipalController {
 
-    // Instância única e reutilizável do ObjectMapper
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @FXML
@@ -43,6 +43,8 @@ public class TelaPrincipalController {
     private Label lblSinopse;
     @FXML
     private ImageView imageCapa;
+    @FXML
+    private Button btnDeletarLivro;
 
     @FXML
     public void initialize() {
@@ -55,7 +57,13 @@ public class TelaPrincipalController {
         colAutor.setCellValueFactory(data -> data.getValue().autorProperty());
 
         tabelaLivros.getSelectionModel().selectedItemProperty().addListener(
-                (obs, antigo, novo) -> exibirDetalhesLivro(novo)
+                (obs, antigo, novo) -> {
+                    exibirDetalhesLivro(novo);
+                    // Habilita/desabilita o botão de deletar com base na seleção
+                    if (btnDeletarLivro != null) {
+                        btnDeletarLivro.setDisable(novo == null);
+                    }
+                }
         );
 
         tabelaLivros.setPlaceholder(new Label("Carregando livros..."));
@@ -91,23 +99,15 @@ public class TelaPrincipalController {
     }
 
     private void exibirDetalhesLivro(LivroFx livro) {
-        if (livro == null) {
-            labelTitulo.setText("");
-            labelAutor.setText("");
-            labelAno.setText("");
-            labelPaginas.setText("");
-            lblSinopse.setText("");
-            imageCapa.setImage(null);
-            return;
-        }
+        boolean livroNaoSelecionado = (livro == null);
 
-        labelTitulo.setText(livro.getTitulo());
-        labelAutor.setText(livro.getAutor());
-        labelAno.setText(String.valueOf(livro.getAno()));
-        labelPaginas.setText(String.valueOf(livro.getNumeroPaginas()));
-        lblSinopse.setText(livro.getSinopse());
+        labelTitulo.setText(livroNaoSelecionado ? "" : livro.getTitulo());
+        labelAutor.setText(livroNaoSelecionado ? "" : livro.getAutor());
+        labelAno.setText(livroNaoSelecionado ? "" : String.valueOf(livro.getAno()));
+        labelPaginas.setText(livroNaoSelecionado ? "" : String.valueOf(livro.getNumeroPaginas()));
+        lblSinopse.setText(livroNaoSelecionado ? "" : livro.getSinopse());
 
-        if (livro.getCapa() != null && livro.getCapa().length > 0) {
+        if (!livroNaoSelecionado && livro.getCapa() != null && livro.getCapa().length > 0) {
             Image imagem = new Image(new java.io.ByteArrayInputStream(livro.getCapa()));
             imageCapa.setImage(imagem);
         } else {
@@ -115,36 +115,74 @@ public class TelaPrincipalController {
         }
     }
 
+    /**
+     * Método chamado pelo onAction do botão "Deletar Livro". Realiza a exclusão
+     * do livro selecionado após confirmação do usuário.
+     */
+    @FXML
+    private void deletarLivro() {
+        LivroFx livroSelecionado = tabelaLivros.getSelectionModel().getSelectedItem();
+
+        if (livroSelecionado == null) {
+            mostrarAlertaErro("Nenhum Livro Selecionado", "Por favor, selecione um livro na lista para excluir.", "");
+            return;
+        }
+
+        // 1. Criar e exibir um diálogo de confirmação
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacao.setTitle("Confirmar Exclusão");
+        confirmacao.setHeaderText("Você tem certeza que deseja excluir este livro?");
+        confirmacao.setContentText("Livro: " + livroSelecionado.getTitulo() + "\nAutor: " + livroSelecionado.getAutor());
+
+        Optional<ButtonType> resultado = confirmacao.showAndWait();
+
+        // 2. Se o usuário confirmar (clicar em OK), prosseguir com a exclusão
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
+            // 3. Executar a chamada de rede em uma tarefa de segundo plano
+            Task<Void> deleteTask = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    // Assumindo que LivroFx tem o método getId()
+                    Long id = livroSelecionado.getId();
+                    String urlBase = ConfigUtil.getProperty("server.url");
+                    String urlDelecao = urlBase + "/" + id;
+
+                    HttpUtil.delete(urlDelecao);
+                    return null;
+                }
+            };
+
+            deleteTask.setOnSucceeded(event -> {
+                // 4. Em caso de sucesso, limpar a seleção e recarregar a lista
+                tabelaLivros.getSelectionModel().clearSelection();
+                carregarLivros();
+            });
+
+            deleteTask.setOnFailed(event -> {
+                Throwable ex = deleteTask.getException();
+                ex.printStackTrace();
+                mostrarAlertaErro("Erro ao Excluir", "Ocorreu uma falha ao tentar excluir o livro.", ex.getMessage());
+            });
+
+            new Thread(deleteTask).start();
+        }
+    }
+
     @FXML
     public void abrirTelaBusca() {
         try {
-            String fxmlPath = ConfigUtil.getProperty("fxml.path.busca");
-
-            if (fxmlPath == null || fxmlPath.isBlank()) {
-                mostrarAlertaErro("Erro de Configuração", "O caminho para a tela de busca não foi encontrado.", "Verifique a chave 'fxml.path.busca' no arquivo config.properties.");
-                return;
-            }
-
-            URL fxmlUrl = getClass().getResource(fxmlPath);
-
-            if (fxmlUrl == null) {
-                mostrarAlertaErro("Erro de Carregamento de FXML", "Não foi possível encontrar o arquivo FXML no caminho especificado.", "Caminho verificado: " + fxmlPath);
-                return;
-            }
-
-            FXMLLoader loader = new FXMLLoader(fxmlUrl);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(ConfigUtil.getProperty("fxml.path.busca")));
             Parent root = loader.load();
 
-            // Pega o controller da tela de busca para configurar o callback
             TelaBuscaLivroController buscaController = loader.getController();
             buscaController.setOnBuscaConcluidaCallback(this::carregarLivros);
 
             Stage stage = new Stage();
-            stage.setTitle("Buscar Livro");
+            stage.setTitle("Adicionar/Buscar Livro");
             stage.setScene(new Scene(root));
             stage.show();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             mostrarAlertaErro("Erro de Interface", "Ocorreu um erro inesperado ao carregar a tela de busca.", e.getMessage());
         }

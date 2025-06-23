@@ -59,7 +59,7 @@
 
                                 <Label text="Páginas:" GridPane.rowIndex="2" />
                                 <Label fx:id="labelPaginas" text="pag aqui" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Label text="Ano:" GridPane.rowIndex="1" />
+                                <Label text="Ano:" GridPane.rowIndex="1" />
                             </children>
                             <rowConstraints>
                                 <RowConstraints />
@@ -87,6 +87,7 @@
                                 </VBox>
                             </children>
                         </HBox>
+                        <Button fx:id="btnDeletarLivro" disable="true" onAction="#deletarLivro" style="-fx-font-size: 14px; -fx-background-color: red; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;" text="Deletar Livro" />
 
                     </children>
                 </VBox>
