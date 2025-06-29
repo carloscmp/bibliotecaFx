@@ -25,24 +25,33 @@ import java.util.ResourceBundle;
 public class TelaBuscaLivroController implements Initializable {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private Runnable onBuscaConcluidaCallback;
 
     @FXML
     private TextField txtBusca;
+
     @FXML
     private TableView<LivroDTO> tabelaBuscaLivro;
+
     @FXML
     private TableColumn<LivroDTO, String> colTitulo;
+
     @FXML
     private TableColumn<LivroDTO, String> colAutor;
+
     @FXML
     private Button btnBuscar;
+
     @FXML
     private Button btnAdicionar;
+
     @FXML
     private Button btnCarregarImagem;
+
     @FXML
     private ImageView imageCapa;
+
     @FXML
     private ProgressIndicator progressIndicator;
 
@@ -56,18 +65,22 @@ public class TelaBuscaLivroController implements Initializable {
         colTitulo.setCellValueFactory(new PropertyValueFactory<>("titulo"));
         colAutor.setCellValueFactory(new PropertyValueFactory<>("autor"));
 
-        tabelaBuscaLivro.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
-            if (novo != null) {
-                carregarCapaAutomaticamente(novo.getCapaUrl());
-            }
-        });
+        tabelaBuscaLivro.getSelectionModel().
+                selectedItemProperty().
+                addListener((obs, antigo, novo) -> {
+                    if(novo != null) {
+                        carregarCapaAutomaticamente(novo.getCapaUrl());
+                    }
+                });
     }
 
     @FXML
     public void buscarLivros() {
         String titulo = txtBusca.getText();
-        if (titulo == null || titulo.isBlank()) {
-            mostrarAlerta("Aviso", "Por favor, digite um termo para a busca.", Alert.AlertType.WARNING);
+        if(titulo == null || titulo.isBlank()) {
+            mostrarAlerta("Aviso",
+                    "Por favor, digite um termo para a busca.",
+                    Alert.AlertType.WARNING);
             return;
         }
 
@@ -84,14 +97,18 @@ public class TelaBuscaLivroController implements Initializable {
         });
 
         buscarTask.setOnSucceeded(e -> {
-            tabelaBuscaLivro.setItems(FXCollections.observableArrayList(buscarTask.getValue()));
+            tabelaBuscaLivro.setItems(FXCollections.observableArrayList(
+                    buscarTask.getValue()));
             progressIndicator.setVisible(false);
             btnBuscar.setDisable(false);
         });
 
         buscarTask.setOnFailed(e -> {
-            mostrarAlerta("Erro de Busca", "Não foi possível realizar a busca.", Alert.AlertType.ERROR);
-            e.getSource().getException().printStackTrace();
+            mostrarAlerta("Erro de Busca", "Não foi possível realizar a busca.",
+                    Alert.AlertType.ERROR);
+            e.getSource().
+                    getException().
+                    printStackTrace();
             progressIndicator.setVisible(false);
             btnBuscar.setDisable(false);
         });
@@ -101,9 +118,11 @@ public class TelaBuscaLivroController implements Initializable {
 
     @FXML
     public void adicionarLivro() {
-        LivroDTO selecionado = tabelaBuscaLivro.getSelectionModel().getSelectedItem();
-        if (selecionado == null) {
-            mostrarAlerta("Aviso", "Selecione um livro da tabela primeiro.", Alert.AlertType.WARNING);
+        LivroDTO selecionado = tabelaBuscaLivro.getSelectionModel().
+                getSelectedItem();
+        if(selecionado == null) {
+            mostrarAlerta("Aviso", "Selecione um livro da tabela primeiro.",
+                    Alert.AlertType.WARNING);
             return;
         }
 
@@ -124,22 +143,27 @@ public class TelaBuscaLivroController implements Initializable {
         });
 
         adicionarTask.setOnSucceeded(e -> {
-            mostrarAlerta("Sucesso", "Livro adicionado com sucesso!", Alert.AlertType.INFORMATION);
+            mostrarAlerta("Sucesso", "Livro adicionado com sucesso!",
+                    Alert.AlertType.INFORMATION);
 
-            if (onBuscaConcluidaCallback != null) {
+            if(onBuscaConcluidaCallback != null) {
                 onBuscaConcluidaCallback.run();
             }
 
             progressIndicator.setVisible(false);
             btnAdicionar.setDisable(false);
 
-            Stage stage = (Stage) btnAdicionar.getScene().getWindow();
+            Stage stage = (Stage) btnAdicionar.getScene().
+                    getWindow();
             stage.close();
         });
 
         adicionarTask.setOnFailed(e -> {
-            mostrarAlerta("Erro ao Adicionar", "Não foi possível adicionar o livro.", Alert.AlertType.ERROR);
-            e.getSource().getException().printStackTrace();
+            mostrarAlerta("Erro ao Adicionar",
+                    "Não foi possível adicionar o livro.", Alert.AlertType.ERROR);
+            e.getSource().
+                    getException().
+                    printStackTrace();
 
             progressIndicator.setVisible(false);
             btnAdicionar.setDisable(false);
@@ -150,12 +174,12 @@ public class TelaBuscaLivroController implements Initializable {
 
     private void carregarCapaAutomaticamente(String url) {
         try {
-            if (url != null && !url.isBlank()) {
+            if(url != null && !url.isBlank()) {
                 imageCapa.setImage(new Image(url, true));
             } else {
                 imageCapa.setImage(null);
             }
-        } catch (Exception e) {
+        } catch(Exception e) {
             imageCapa.setImage(null);
         }
     }
@@ -164,14 +188,19 @@ public class TelaBuscaLivroController implements Initializable {
     public void carregarCapaManual() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar Imagem da Capa");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg", "*.jpeg"));
+        fileChooser.getExtensionFilters().
+                add(new FileChooser.ExtensionFilter("Imagens", "*.png", "*.jpg",
+                        "*.jpeg"));
 
-        File file = fileChooser.showOpenDialog(imageCapa.getScene().getWindow());
-        if (file != null) {
-            try (FileInputStream fis = new FileInputStream(file)) {
+        File file = fileChooser.showOpenDialog(imageCapa.getScene().
+                getWindow());
+        if(file != null) {
+            try(FileInputStream fis = new FileInputStream(file)) {
                 imageCapa.setImage(new Image(fis));
-            } catch (Exception e) {
-                mostrarAlerta("Erro de Imagem", "Não foi possível carregar a imagem local.", Alert.AlertType.ERROR);
+            } catch(Exception e) {
+                mostrarAlerta("Erro de Imagem",
+                        "Não foi possível carregar a imagem local.",
+                        Alert.AlertType.ERROR);
             }
         }
     }
