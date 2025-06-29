@@ -2,19 +2,31 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.layout.*?>
-
-<BorderPane prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.2"
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane prefHeight="600.0"
+            prefWidth="1000.0"
+            xmlns="http://javafx.com/javafx/17.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.carlos.bibliotecafx.controller.TelaBuscaLivroController">
-    <ProgressIndicator fx:id="progressIndicator" layoutX="285.0" layoutY="185.0" />
+    <ProgressIndicator fx:id="progressIndicator"
+                       layoutX="285.0"
+                       layoutY="185.0"/>
 
     <top>
         <AnchorPane prefHeight="100.0">
             <children>
-                <TextField fx:id="txtBusca" layoutX="32.0" layoutY="34.0" prefHeight="29.0" prefWidth="500.0" />
-                <Button fx:id="btnBuscar" layoutX="550.0" layoutY="34.0" text="Buscar" onAction="#buscarLivros" />
+                <TextField fx:id="txtBusca"
+                           layoutX="32.0"
+                           layoutY="34.0"
+                           prefHeight="29.0"
+                           prefWidth="500.0"/>
+                <Button fx:id="btnBuscar"
+                        layoutX="550.0"
+                        layoutY="34.0"
+                        text="Buscar"
+                        onAction="#buscarLivros"/>
             </children>
         </AnchorPane>
     </top>
@@ -22,17 +34,30 @@
     <center>
         <SplitPane orientation="HORIZONTAL">
             <items>
-                <TableView fx:id="tabelaBuscaLivro" prefWidth="600.0">
+                <TableView fx:id="tabelaBuscaLivro"
+                           prefWidth="600.0">
                     <columns>
-                        <TableColumn fx:id="colTitulo" prefWidth="300.0" text="Título" />
-                        <TableColumn fx:id="colAutor" prefWidth="300.0" text="Autor" />
+                        <TableColumn fx:id="colTitulo"
+                                     prefWidth="300.0"
+                                     text="Título"/>
+                        <TableColumn fx:id="colAutor"
+                                     prefWidth="300.0"
+                                     text="Autor"/>
                     </columns>
                 </TableView>
 
-                <VBox spacing="10" alignment="TOP_CENTER" prefWidth="400.0" style="-fx-padding: 10;">
+                <VBox spacing="10"
+                      alignment="TOP_CENTER"
+                      prefWidth="400.0"
+                      style="-fx-padding: 10;">
                     <children>
-                        <ImageView fx:id="imageCapa" fitWidth="200.0" fitHeight="300.0" preserveRatio="true" />
-                        <Button fx:id="btnCarregarImagem" text="Carregar Capa Manualmente" onAction="#carregarCapaManual" />
+                        <ImageView fx:id="imageCapa"
+                                   fitWidth="200.0"
+                                   fitHeight="300.0"
+                                   preserveRatio="true"/>
+                        <Button fx:id="btnCarregarImagem"
+                                text="Carregar Capa Manualmente"
+                                onAction="#carregarCapaManual"/>
                     </children>
                 </VBox>
             </items>
@@ -42,7 +67,12 @@
     <bottom>
         <AnchorPane prefHeight="80.0">
             <children>
-                <Button fx:id="btnAdicionar" layoutX="890.0" layoutY="28.0" prefWidth="89.0" text="Adicionar" onAction="#adicionarLivro" />
+                <Button fx:id="btnAdicionar"
+                        layoutX="890.0"
+                        layoutY="28.0"
+                        prefWidth="89.0"
+                        text="Adicionar"
+                        onAction="#adicionarLivro"/>
             </children>
         </AnchorPane>
     </bottom>

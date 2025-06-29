@@ -9,19 +9,19 @@ import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import javafx.geometry.Bounds;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 
 public class TelaPrincipalController {
 
@@ -71,20 +71,20 @@ public class TelaPrincipalController {
 
     private void configurarTabela() {
         colTitulo.setCellValueFactory(data -> data.getValue().
-                tituloProperty());
+                                                  tituloProperty());
         colAutor.setCellValueFactory(data -> data.getValue().
-                autorProperty());
+                                                 autorProperty());
 
         tabelaLivros.getSelectionModel().
-                selectedItemProperty().
-                addListener(
-                        (obs, antigo, novo) -> {
-                            exibirDetalhesLivro(novo);
-                            boolean desabilitar = (novo == null);
-                            btnDeletarLivro.setDisable(desabilitar);
-                            btnEditarLivro.setDisable(desabilitar);
-                        }
-                );
+                    selectedItemProperty().
+                    addListener(
+                            (obs, antigo, novo) -> {
+                                exibirDetalhesLivro(novo);
+                                boolean desabilitar = (novo == null);
+                                btnDeletarLivro.setDisable(desabilitar);
+                                btnEditarLivro.setDisable(desabilitar);
+                            }
+                    );
 
         tabelaLivros.setPlaceholder(new Label("Carregando livros..."));
     }
@@ -104,8 +104,8 @@ public class TelaPrincipalController {
         carregarTask.setOnSucceeded(event -> {
             tabelaLivros.setItems(FXCollections.observableArrayList(
                     carregarTask.getValue()));
-            if(tabelaLivros.getItems().
-                    isEmpty()) {
+            if (tabelaLivros.getItems().
+                            isEmpty()) {
                 tabelaLivros.setPlaceholder(
                         new Label("Nenhum livro na estante."));
             }
@@ -135,7 +135,7 @@ public class TelaPrincipalController {
                 getNumeroPaginas()));
         lblSinopse.setText(livroNaoSelecionado ? "" : livro.getSinopse());
 
-        if(!livroNaoSelecionado && livro.getCapa() != null
+        if (!livroNaoSelecionado && livro.getCapa() != null
                 && livro.getCapa().length > 0) {
             Image imagem = new Image(new java.io.ByteArrayInputStream(livro.
                     getCapa()));
@@ -148,9 +148,9 @@ public class TelaPrincipalController {
     @FXML
     private void deletarLivro() {
         LivroFx livroSelecionado = tabelaLivros.getSelectionModel().
-                getSelectedItem();
+                                               getSelectedItem();
 
-        if(livroSelecionado == null) {
+        if (livroSelecionado == null) {
             mostrarAlertaErro("Nenhum Livro Selecionado",
                     "Por favor, selecione um livro na lista para excluir.", "");
             return;
@@ -165,7 +165,7 @@ public class TelaPrincipalController {
 
         Optional<ButtonType> resultado = confirmacao.showAndWait();
 
-        if(resultado.isPresent() && resultado.get() == ButtonType.OK) {
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             Task<Void> deleteTask = new Task<>() {
                 @Override
                 protected Void call() throws Exception {
@@ -180,7 +180,7 @@ public class TelaPrincipalController {
 
             deleteTask.setOnSucceeded(event -> {
                 tabelaLivros.getSelectionModel().
-                        clearSelection();
+                            clearSelection();
                 carregarLivros();
             });
 
@@ -199,8 +199,8 @@ public class TelaPrincipalController {
     @FXML
     private void editarLivroSelecionado() {
         LivroFx livroSelecionado = tabelaLivros.getSelectionModel().
-                getSelectedItem();
-        if(livroSelecionado == null) {
+                                               getSelectedItem();
+        if (livroSelecionado == null) {
             return;
         }
 
@@ -220,7 +220,7 @@ public class TelaPrincipalController {
             edicaoStage.setTitle("Editando: " + livroSelecionado.getTitulo());
             edicaoStage.initModality(Modality.WINDOW_MODAL);
             edicaoStage.initOwner(tabelaLivros.getScene().
-                    getWindow());
+                                              getWindow());
             Scene scene = new Scene(root, largura, altura);
             edicaoStage.setScene(scene);
 
@@ -231,21 +231,16 @@ public class TelaPrincipalController {
             controller.inicializarDados(livroSelecionado);
             controller.setOnEdicaoConcluidaCallback(this::carregarLivros);
             edicaoStage.showAndWait();
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Dentro da classe TelaPrincipalController.java
-    /**
-     * Chamado pelo MenuItem "Buscar Online". Abre a tela de busca na API do
-     * Google Books.
-     */
     @FXML
     private void abrirTelaBuscaOnline() {
         try {
             String fxmlPath = ConfigUtil.getProperty("fxml.path.busca");
-            if(fxmlPath == null || fxmlPath.isBlank()) {
+            if (fxmlPath == null || fxmlPath.isBlank()) {
                 mostrarAlertaErro("Erro de Configuração",
                         "Caminho para a tela de busca online não encontrado em config.properties.",
                         "Verifique a chave 'fxml.path.busca'");
@@ -256,7 +251,7 @@ public class TelaPrincipalController {
                     getResource(fxmlPath));
             Parent root = loader.load();
 
-            // Configura o callback para atualizar a lista principal quando a busca terminar
+
             TelaBuscaLivroController buscaController = loader.getController();
             buscaController.setOnBuscaConcluidaCallback(this::carregarLivros);
 
@@ -265,10 +260,10 @@ public class TelaPrincipalController {
             stage.setScene(new Scene(root));
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(tabelaLivros.getScene().
-                    getWindow());
+                                        getWindow());
             stage.showAndWait();
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             mostrarAlertaErro("Erro de Interface",
                     "Ocorreu um erro ao carregar a tela de busca online.", e.
@@ -276,16 +271,12 @@ public class TelaPrincipalController {
         }
     }
 
-    /**
-     * Chamado pelo MenuItem "Cadastro Manual". Abre a tela de formulário para
-     * adicionar um novo livro do zero.
-     */
     @FXML
     private void abrirTelaCadastroManual() {
         try {
             // Reutilizamos a tela de edição, que agora também é de cadastro
             String fxmlPath = ConfigUtil.getProperty("fxml.path.edicao");
-            if(fxmlPath == null || fxmlPath.isBlank()) {
+            if (fxmlPath == null || fxmlPath.isBlank()) {
                 mostrarAlertaErro("Erro de Configuração",
                         "Caminho para a tela de cadastro/edição não encontrado em config.properties.",
                         "Verifique a chave 'fxml.path.edicao'");
@@ -298,10 +289,8 @@ public class TelaPrincipalController {
 
             TelaEdicaoLivroController edicaoController = loader.getController();
 
-            // Abre a tela em "Modo Criação", passando um objeto novo e vazio
             edicaoController.inicializarDados(new LivroFx());
 
-            // Passa o callback para atualizar a tabela principal após o novo livro ser salvo
             edicaoController.setOnEdicaoConcluidaCallback(this::carregarLivros);
 
             Stage stage = new Stage();
@@ -309,18 +298,17 @@ public class TelaPrincipalController {
             stage.setScene(new Scene(root));
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(tabelaLivros.getScene().
-                    getWindow());
+                                        getWindow());
             stage.showAndWait();
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             mostrarAlertaErro("Erro de Interface",
                     "Ocorreu um erro ao carregar a tela de cadastro manual.", e.
                             getMessage());
         }
     }
-
-// Lembre-se que o método antigo 'abrirTelaBusca' ou 'abrirTelaCadastro' pode ser removido agora.
+    
     private void mostrarAlertaErro(String titulo, String cabecalho, String conteudo) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titulo);
