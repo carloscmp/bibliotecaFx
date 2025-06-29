@@ -24,7 +24,6 @@ public class LivroAPI {
         String encodedTitulo = URLEncoder.encode(titulo, StandardCharsets.UTF_8);
         String url = String.format("%s?q=%s&maxResults=20&key=%s", baseUrl, encodedTitulo, API_KEY);
 
-        // Agora esta chamada corresponde à assinatura correta do HttpUtil
         String respostaJson = HttpUtil.get(url);
 
         GoogleBooksResponse response = MAPPER.readValue(respostaJson, GoogleBooksResponse.class);
@@ -57,7 +56,7 @@ public class LivroAPI {
                 try {
                     dto.setAno(Integer.parseInt(volumeInfo.publishedDate.substring(0, 4)));
                 } catch (NumberFormatException e) {
-                    /* Ignora */ }
+                }
             }
 
             if (volumeInfo.imageLinks != null && volumeInfo.imageLinks.thumbnail != null) {
@@ -70,7 +69,6 @@ public class LivroAPI {
         return livros;
     }
 
-    //region Classes Internas para Mapeamento do JSON
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GoogleBooksResponse {
 
@@ -100,5 +98,4 @@ public class LivroAPI {
         public String thumbnail;
         public String smallThumbnail;
     }
-    //endregion
 }

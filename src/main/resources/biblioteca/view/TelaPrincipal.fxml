@@ -16,20 +16,17 @@
 
 <BorderPane prefHeight="600.0" prefWidth="1000.0" style="-fx-background-color: #f4f6f8;" xmlns="http://javafx.com/javafx/17.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.carlos.bibliotecafx.controller.TelaPrincipalController">
 
-    <!-- Topo com botão -->
     <top>
         <ToolBar style="-fx-background-color: #ffffff; -fx-padding: 10; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;">
             <Button onAction="#abrirTelaBusca" style="-fx-font-size: 14px; -fx-background-color: #1976d2; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;" text="➕ Adicionar Livro" />
         </ToolBar>
     </top>
 
-    <!-- Conteúdo principal -->
     <center>
         <HBox spacing="20" style="-fx-padding: 20;" HBox.hgrow="ALWAYS">
             <children>
 
-                <!-- Tabela de livros -->
-                <TableView fx:id="tabelaLivros" minWidth="300.0" prefWidth="300" VBox.vgrow="ALWAYS">
+                <TableView fx:id="tabelaLivros" minWidth="300.0" prefWidth="300.0" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="colTitulo" prefWidth="150.0" text="Título" />
                         <TableColumn fx:id="colAutor" prefWidth="150.0" text="Autor" />
@@ -39,14 +36,11 @@
                     </columnResizePolicy>
                 </TableView>
 
-                <!-- Painel de detalhes -->
-                <VBox fx:id="containerDetalhes" spacing="15.0" style="-fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 0);" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                <VBox fx:id="containerDetalhes" spacing="15.0" style="-fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 0);" HBox.hgrow="ALWAYS">
                     <children>
 
-                        <!-- Título do livro -->
                         <Label fx:id="labelTitulo" style="-fx-font-size: 22px; -fx-text-fill: #333333; -fx-font-weight: bold;" text="Título do Livro Aqui" wrapText="true" />
 
-                        <!-- Informações básicas -->
                         <GridPane hgap="10" vgap="10">
                             <columnConstraints>
                                 <ColumnConstraints halignment="RIGHT" />
@@ -56,7 +50,6 @@
                                 <Label text="Autor:" />
                                 <Label fx:id="labelAutor" text="Autor aparece aqui" GridPane.columnIndex="1" />
                                 <Label fx:id="labelAno" text="Ano aqui" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-
                                 <Label text="Páginas:" GridPane.rowIndex="2" />
                                 <Label fx:id="labelPaginas" text="pag aqui" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                 <Label text="Ano:" GridPane.rowIndex="1" />
@@ -68,18 +61,15 @@
                             </rowConstraints>
                         </GridPane>
 
-                        <!-- Imagem da capa -->
-                        <HBox spacing="20">
+                        <HBox spacing="20" VBox.vgrow="ALWAYS">
                             <children>
                                 <VBox>
                                     <Label style="-fx-font-size: 14px; -fx-text-fill: #666666;" text="Capa:" />
                                     <ImageView fx:id="imageCapa" fitHeight="240" fitWidth="160" preserveRatio="true" />
                                 </VBox>
-
-                                <!-- Sinopse -->
-                                <VBox VBox.vgrow="ALWAYS">
+                                <VBox HBox.hgrow="ALWAYS">
                                     <Label style="-fx-font-size: 14px; -fx-text-fill: #666666;" text="Sinopse:" />
-                                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="420.0" style="-fx-border-color: #F0F0F0; -fx-background-color: #F0F0F0;" VBox.vgrow="ALWAYS">
+                                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" style="-fx-border-color: #F0F0F0; -fx-background-color: #F0F0F0;">
                                         <content>
                                             <Label fx:id="lblSinopse" style="-fx-font-size: 13px; -fx-text-fill: #444; -fx-padding: 5;" wrapText="true" />
                                         </content>
@@ -87,13 +77,16 @@
                                 </VBox>
                             </children>
                         </HBox>
-                        <Button fx:id="btnDeletarLivro" disable="true" onAction="#deletarLivro" style="-fx-font-size: 14px; -fx-background-color: red; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;" text="Deletar Livro" />
 
+                        <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                            <children>
+                                <Button fx:id="btnEditarLivro" disable="true" onAction="#editarLivroSelecionado" style="-fx-font-size: 14px; -fx-background-color: #ffc107; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;" text="✏️ Editar Livro" />
+                                <Button fx:id="btnDeletarLivro" disable="true" onAction="#deletarLivro" style="-fx-font-size: 14px; -fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;" text="❌ Deletar Livro" />
+                            </children>
+                        </HBox>
                     </children>
                 </VBox>
-
             </children>
         </HBox>
     </center>
-
 </BorderPane>

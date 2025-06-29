@@ -17,14 +17,18 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import javafx.geometry.Bounds;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 
 public class TelaPrincipalController {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    @FXML
+    private VBox containerDetalhes;
     @FXML
     private TableView<LivroFx> tabelaLivros;
     @FXML
@@ -45,6 +49,8 @@ public class TelaPrincipalController {
     private ImageView imageCapa;
     @FXML
     private Button btnDeletarLivro;
+    @FXML
+    private Button btnEditarLivro;
 
     @FXML
     public void initialize() {
@@ -59,10 +65,9 @@ public class TelaPrincipalController {
         tabelaLivros.getSelectionModel().selectedItemProperty().addListener(
                 (obs, antigo, novo) -> {
                     exibirDetalhesLivro(novo);
-                    // Habilita/desabilita o botão de deletar com base na seleção
-                    if (btnDeletarLivro != null) {
-                        btnDeletarLivro.setDisable(novo == null);
-                    }
+                    boolean desabilitar = (novo == null);
+                    btnDeletarLivro.setDisable(desabilitar);
+                    btnEditarLivro.setDisable(desabilitar);
                 }
         );
 
@@ -92,7 +97,10 @@ public class TelaPrincipalController {
             tabelaLivros.setPlaceholder(new Label("Falha ao carregar livros."));
             Throwable ex = carregarTask.getException();
             ex.printStackTrace();
-            mostrarAlertaErro("Erro de Rede", "Não foi possível buscar os livros do servidor.", ex.getMessage());
+            mostrarAlertaErro(
+                    "Erro de Rede",
+                    "Não foi possível buscar os livros do servidor.",
+                    ex.getMessage());
         });
 
         new Thread(carregarTask).start();
@@ -115,10 +123,6 @@ public class TelaPrincipalController {
         }
     }
 
-    /**
-     * Método chamado pelo onAction do botão "Deletar Livro". Realiza a exclusão
-     * do livro selecionado após confirmação do usuário.
-     */
     @FXML
     private void deletarLivro() {
         LivroFx livroSelecionado = tabelaLivros.getSelectionModel().getSelectedItem();
@@ -128,7 +132,6 @@ public class TelaPrincipalController {
             return;
         }
 
-        // 1. Criar e exibir um diálogo de confirmação
         Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacao.setTitle("Confirmar Exclusão");
         confirmacao.setHeaderText("Você tem certeza que deseja excluir este livro?");
@@ -136,13 +139,10 @@ public class TelaPrincipalController {
 
         Optional<ButtonType> resultado = confirmacao.showAndWait();
 
-        // 2. Se o usuário confirmar (clicar em OK), prosseguir com a exclusão
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            // 3. Executar a chamada de rede em uma tarefa de segundo plano
             Task<Void> deleteTask = new Task<>() {
                 @Override
                 protected Void call() throws Exception {
-                    // Assumindo que LivroFx tem o método getId()
                     Long id = livroSelecionado.getId();
                     String urlBase = ConfigUtil.getProperty("server.url");
                     String urlDelecao = urlBase + "/" + id;
@@ -153,7 +153,6 @@ public class TelaPrincipalController {
             };
 
             deleteTask.setOnSucceeded(event -> {
-                // 4. Em caso de sucesso, limpar a seleção e recarregar a lista
                 tabelaLivros.getSelectionModel().clearSelection();
                 carregarLivros();
             });
@@ -165,6 +164,42 @@ public class TelaPrincipalController {
             });
 
             new Thread(deleteTask).start();
+        }
+    }
+
+    @FXML
+    private void editarLivroSelecionado() {
+        LivroFx livroSelecionado = tabelaLivros.getSelectionModel().getSelectedItem();
+        if (livroSelecionado == null) {
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(ConfigUtil.getProperty("fxml.path.edicao")));
+            Parent root = loader.load();
+
+            Bounds boundsNaTela = containerDetalhes.localToScreen(containerDetalhes.getBoundsInLocal());
+            double x = boundsNaTela.getMinX();
+            double y = boundsNaTela.getMinY();
+            double largura = containerDetalhes.getWidth();
+            double altura = containerDetalhes.getHeight();
+
+            Stage edicaoStage = new Stage();
+            edicaoStage.setTitle("Editando: " + livroSelecionado.getTitulo());
+            edicaoStage.initModality(Modality.WINDOW_MODAL);
+            edicaoStage.initOwner(tabelaLivros.getScene().getWindow());
+            Scene scene = new Scene(root, largura, altura);
+            edicaoStage.setScene(scene);
+
+            edicaoStage.setX(x);
+            edicaoStage.setY(y);
+
+            TelaEdicaoLivroController controller = loader.getController();
+            controller.inicializarDados(livroSelecionado);
+            controller.setOnEdicaoConcluidaCallback(this::carregarLivros);
+            edicaoStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

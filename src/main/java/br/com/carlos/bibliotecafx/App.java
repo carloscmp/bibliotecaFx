@@ -11,8 +11,8 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/biblioteca/view/TelaPrincipal.fxml"));
-        Parent root = loader.load(); // <- Aqui você declara a variável root
-        Scene scene = new Scene(root, 1000, 600); // Usa a variável root
+        Parent root = loader.load();
+        Scene scene = new Scene(root, 1000, 600);
 
         primaryStage.setTitle("Minha Biblioteca");
         primaryStage.setScene(scene);

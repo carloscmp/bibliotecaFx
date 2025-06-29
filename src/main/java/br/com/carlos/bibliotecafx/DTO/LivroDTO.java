@@ -30,7 +30,6 @@ public class LivroDTO {
         this.contraCapa = fx.getContraCapa();
     }
 
-    // Método utilitário para baixar a imagem da URL e armazenar em byte[]
     public void prepararParaEnvio() {
         if (this.capa == null && this.capaUrl != null && !this.capaUrl.isBlank()) {
             try (InputStream in = new URL(capaUrl).openStream()) {
@@ -41,7 +40,6 @@ public class LivroDTO {
         }
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }

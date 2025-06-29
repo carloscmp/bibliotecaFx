@@ -85,7 +85,6 @@ public class TelaBuscaLivroController implements Initializable {
 
         buscarTask.setOnSucceeded(e -> {
             tabelaBuscaLivro.setItems(FXCollections.observableArrayList(buscarTask.getValue()));
-            // Lógica de finalização
             progressIndicator.setVisible(false);
             btnBuscar.setDisable(false);
         });
@@ -93,7 +92,6 @@ public class TelaBuscaLivroController implements Initializable {
         buscarTask.setOnFailed(e -> {
             mostrarAlerta("Erro de Busca", "Não foi possível realizar a busca.", Alert.AlertType.ERROR);
             e.getSource().getException().printStackTrace();
-            // Lógica de finalização
             progressIndicator.setVisible(false);
             btnBuscar.setDisable(false);
         });
@@ -132,7 +130,6 @@ public class TelaBuscaLivroController implements Initializable {
                 onBuscaConcluidaCallback.run();
             }
 
-            // Lógica de finalização
             progressIndicator.setVisible(false);
             btnAdicionar.setDisable(false);
 
@@ -143,8 +140,7 @@ public class TelaBuscaLivroController implements Initializable {
         adicionarTask.setOnFailed(e -> {
             mostrarAlerta("Erro ao Adicionar", "Não foi possível adicionar o livro.", Alert.AlertType.ERROR);
             e.getSource().getException().printStackTrace();
-            
-            // Lógica de finalização
+
             progressIndicator.setVisible(false);
             btnAdicionar.setDisable(false);
         });

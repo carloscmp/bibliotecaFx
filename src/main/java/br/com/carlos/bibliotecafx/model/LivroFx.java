@@ -1,5 +1,7 @@
 package br.com.carlos.bibliotecafx.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
 
@@ -20,17 +22,17 @@ public class LivroFx {
     }
 
     public LivroFx(Long id, String titulo, String autor, int ano, String sinopse, int numeroPaginas, byte[] capa, byte[] contraCapa) {
-        this.id.set(id);
-        this.titulo.set(titulo);
-        this.autor.set(autor);
-        this.ano.set(ano);
-        this.sinopse.set(sinopse);
-        this.numeroPaginas.set(numeroPaginas);
-        this.capa.set(capa);
-        this.contraCapa.set(contraCapa);
+        this.setId(id);
+        this.setTitulo(titulo);
+        this.setAutor(autor);
+        this.setAno(ano);
+        this.setSinopse(sinopse);
+        this.setNumeroPaginas(numeroPaginas);
+        this.setCapa(capa);
+        this.setContraCapa(contraCapa);
     }
 
-    // Getters, setters e propriedades
+    @JsonProperty("id")
     public Long getId() {
         return id.get();
     }
@@ -39,10 +41,12 @@ public class LivroFx {
         this.id.set(id);
     }
 
+    @JsonIgnore
     public LongProperty idProperty() {
         return id;
     }
 
+    @JsonProperty("titulo")
     public String getTitulo() {
         return titulo.get();
     }
@@ -51,10 +55,12 @@ public class LivroFx {
         this.titulo.set(titulo);
     }
 
+    @JsonIgnore
     public StringProperty tituloProperty() {
         return titulo;
     }
 
+    @JsonProperty("autor")
     public String getAutor() {
         return autor.get();
     }
@@ -63,10 +69,12 @@ public class LivroFx {
         this.autor.set(autor);
     }
 
+    @JsonIgnore
     public StringProperty autorProperty() {
         return autor;
     }
 
+    @JsonProperty("ano")
     public int getAno() {
         return ano.get();
     }
@@ -75,10 +83,12 @@ public class LivroFx {
         this.ano.set(ano);
     }
 
+    @JsonIgnore
     public IntegerProperty anoProperty() {
         return ano;
     }
 
+    @JsonProperty("sinopse")
     public String getSinopse() {
         return sinopse.get();
     }
@@ -87,10 +97,12 @@ public class LivroFx {
         this.sinopse.set(sinopse);
     }
 
+    @JsonIgnore
     public StringProperty sinopseProperty() {
         return sinopse;
     }
 
+    @JsonProperty("numeroPaginas")
     public int getNumeroPaginas() {
         return numeroPaginas.get();
     }
@@ -99,10 +111,12 @@ public class LivroFx {
         this.numeroPaginas.set(numeroPaginas);
     }
 
+    @JsonIgnore
     public IntegerProperty numeroPaginasProperty() {
         return numeroPaginas;
     }
 
+    @JsonProperty("capa")
     public byte[] getCapa() {
         return capa.get();
     }
@@ -111,10 +125,12 @@ public class LivroFx {
         this.capa.set(capa);
     }
 
+    @JsonIgnore
     public ObjectProperty<byte[]> capaProperty() {
         return capa;
     }
 
+    @JsonProperty("contraCapa")
     public byte[] getContraCapa() {
         return contraCapa.get();
     }
@@ -123,11 +139,12 @@ public class LivroFx {
         this.contraCapa.set(contraCapa);
     }
 
+    @JsonIgnore
     public ObjectProperty<byte[]> contraCapaProperty() {
         return contraCapa;
     }
 
-    // Método auxiliar para exibir imagem da capa no JavaFX
+    @JsonIgnore
     public Image getImagemCapa() {
         byte[] dados = getCapa();
         if (dados != null && dados.length > 0) {
@@ -136,6 +153,7 @@ public class LivroFx {
         return null;
     }
 
+    @JsonIgnore
     public Image getImagemContraCapa() {
         byte[] dados = getContraCapa();
         if (dados != null && dados.length > 0) {
