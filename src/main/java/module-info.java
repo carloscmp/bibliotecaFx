@@ -5,6 +5,7 @@ module br.com.carlos.bibliotecafx {
     requires com.fasterxml.jackson.databind;
     requires java.logging;
 
+
     opens br.com.carlos.bibliotecafx to javafx.fxml;
     opens br.com.carlos.bibliotecafx.controller to javafx.fxml;
     opens br.com.carlos.bibliotecafx.DTO to javafx.base, com.fasterxml.jackson.databind;

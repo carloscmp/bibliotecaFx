@@ -274,7 +274,6 @@ public class TelaPrincipalController {
     @FXML
     private void abrirTelaCadastroManual() {
         try {
-            // Reutilizamos a tela de edição, que agora também é de cadastro
             String fxmlPath = ConfigUtil.getProperty("fxml.path.edicao");
             if (fxmlPath == null || fxmlPath.isBlank()) {
                 mostrarAlertaErro("Erro de Configuração",
@@ -308,7 +307,7 @@ public class TelaPrincipalController {
                             getMessage());
         }
     }
-    
+
     private void mostrarAlertaErro(String titulo, String cabecalho, String conteudo) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(titulo);
