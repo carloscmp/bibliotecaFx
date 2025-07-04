@@ -16,8 +16,8 @@ public class CelulaLivroController {
     private Label lblTitulo;
     @FXML
     private Label lblAutor;
-
-    // O método initialize() foi removido pois não é mais necessário.
+    @FXML
+    private Label lblStatusLeitura;
 
     public void setLivro(LivroFx livro) {
         lblTitulo.setText(livro.getTitulo());
@@ -27,6 +27,14 @@ public class CelulaLivroController {
             imgCapaMiniatura.setImage(new Image(new ByteArrayInputStream(livro.getCapa())));
         } else {
             imgCapaMiniatura.setImage(null);
+        }
+
+        if (livro.isLido()) {
+            lblStatusLeitura.setText("📗");
+            lblStatusLeitura.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
+        } else {
+            lblStatusLeitura.setText("📕");
+            lblStatusLeitura.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
         }
     }
 }

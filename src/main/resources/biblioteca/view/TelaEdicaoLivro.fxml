@@ -108,6 +108,13 @@
                 </HBox>
                 <HBox alignment="CENTER_RIGHT"
                       spacing="10.0">
+                    <CheckBox fx:id="checkLido"
+                              mnemonicParsing="false"
+                              text="Marcar como lido"/>
+
+                    <HBox alignment="CENTER_RIGHT"
+                          spacing="10.0">
+                    </HBox>
                     <children>
                         <Button fx:id="btnSalvar"
                                 mnemonicParsing="false"

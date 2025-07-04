@@ -59,6 +59,8 @@ public class TelaPrincipalController {
     private Button btnDeletarLivro;
     @FXML
     private Button btnEditarLivro;
+    @FXML
+    private Label labelStatusLeitura;
 
     /**
      * Método de inicialização principal, chamado quando a tela é criada.
@@ -194,25 +196,47 @@ public class TelaPrincipalController {
 
     /**
      * Exibe os detalhes do livro selecionado no painel à direita.
+     * Agora inclui a lógica para mostrar o status de leitura.
+     *
+     * @param livro O livro selecionado, ou null se nenhum estiver selecionado.
      */
     private void exibirDetalhesLivro(LivroFx livro) {
         boolean livroNaoSelecionado = (livro == null);
 
         if (livroNaoSelecionado) {
+            // Limpa todos os campos se nenhum livro for selecionado
             labelTitulo.setText("Selecione um livro");
             labelAutor.setText("---");
             labelAno.setText("---");
             labelPaginas.setText("---");
             lblSinopse.setText("");
             imageCapa.setImage(null);
+
+            // <<< ALTERAÇÃO AQUI >>>
+            // Limpa o label de status também
+            labelStatusLeitura.setText("---");
+            labelStatusLeitura.setStyle("-fx-text-fill: black; -fx-font-weight: normal;"); // Reseta o estilo
+
         } else {
+            // Preenche os campos com as informações do livro selecionado
             labelTitulo.setText(livro.getTitulo());
             labelAutor.setText(livro.getAutor());
             labelAno.setText(livro.getAno() == 0 ? "Não informado" : String.valueOf(livro.getAno()));
             labelPaginas.setText(livro.getNumeroPaginas() == 0 ? "Não informado" : String.valueOf(livro.getNumeroPaginas()));
             lblSinopse.setText(livro.getSinopse());
 
-            Image imagemCapa = livro.getImagemCapa(); // Usa o método auxiliar do LivroFx
+            // <<< ALTERAÇÃO AQUI >>>
+            // Adiciona a lógica para definir o texto e a cor do status de leitura
+            if (livro.isLido()) {
+                labelStatusLeitura.setText("📗 Lido");
+                labelStatusLeitura.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;"); // Verde
+            } else {
+                labelStatusLeitura.setText("📕 Não Lido");
+                labelStatusLeitura.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;"); // Vermelho
+            }
+
+            // Lógica para exibir a capa (permanece a mesma)
+            Image imagemCapa = livro.getImagemCapa();
             if (imagemCapa != null) {
                 if (imagemCapa.isError()) {
                     System.err.println("Erro ao carregar a imagem para o livro: " + livro.getTitulo());

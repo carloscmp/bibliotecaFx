@@ -76,6 +76,12 @@
                                        text="---"
                                        GridPane.columnIndex="1"
                                        GridPane.rowIndex="2"/>
+                                <Label text="Status:"
+                                       GridPane.rowIndex="3"/>
+                                <Label fx:id="labelStatusLeitura"
+                                       text="---"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="3"/>
                             </children>
                             <rowConstraints>
                                 <RowConstraints/>

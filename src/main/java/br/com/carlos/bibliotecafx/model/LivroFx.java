@@ -41,6 +41,8 @@ public class LivroFx {
         this.id.set(id);
     }
 
+    private final BooleanProperty lido = new SimpleBooleanProperty();
+
     @JsonIgnore
     public LongProperty idProperty() {
         return id;
@@ -142,6 +144,20 @@ public class LivroFx {
     @JsonIgnore
     public ObjectProperty<byte[]> contraCapaProperty() {
         return contraCapa;
+    }
+
+    
+    public boolean isLido() {
+        return lido.get();
+    }
+
+    public void setLido(boolean lido) {
+        this.lido.set(lido);
+    }
+
+    @JsonIgnore // Importante para não confundir o Jackson
+    public BooleanProperty lidoProperty() {
+        return lido;
     }
 
     @JsonIgnore

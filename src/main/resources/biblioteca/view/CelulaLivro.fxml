@@ -1,23 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<HBox alignment="CENTER_LEFT"
-      spacing="15.0"
-      style="-fx-padding: 10;"
-      xmlns="http://javafx.com/javafx/17.0.2"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="br.com.carlos.bibliotecafx.controller.CelulaLivroController">
-    <children>
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.carlos.bibliotecafx.controller.CelulaLivroController">
+    <padding>
+        <Insets bottom="5.0"
+                left="5.0"
+                right="5.0"
+                top="5.0"/>
+    </padding>
+
+    <left>
         <ImageView fx:id="imgCapaMiniatura"
                    fitHeight="75.0"
                    fitWidth="50.0"
                    pickOnBounds="true"
-                   preserveRatio="true"/>
-        <VBox HBox.hgrow="ALWAYS">
+                   preserveRatio="true"
+                   BorderPane.alignment="CENTER"/>
+    </left>
+
+    <center>
+        <VBox spacing="5.0"
+              BorderPane.alignment="CENTER_LEFT">
             <children>
                 <Label fx:id="lblTitulo"
                        style="-fx-font-weight: bold;"
@@ -31,7 +41,12 @@
                         <Font size="11.0"/>
                     </font>
                 </Label>
+                <Label fx:id="lblStatusLeitura"
+                       text="Status"/>
             </children>
+            <padding>
+                <Insets left="15.0"/>
+            </padding>
         </VBox>
-    </children>
-</HBox>
+    </center>
+</BorderPane>
