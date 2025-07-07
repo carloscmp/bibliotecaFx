@@ -1,5 +1,6 @@
 package br.com.carlos.bibliotecafx;
 
+import br.com.carlos.bibliotecafx.util.ThemeManager;
 import javafx.application.Application;
 import javafx.application.Preloader;
 import javafx.fxml.FXMLLoader;
@@ -27,6 +28,8 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/biblioteca/view/TelaPrincipal.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root, 1000, 600);
+
+        ThemeManager.applyThemeToScene(scene);
 
         // <<< ADICIONANDO O ÍCONE DA APLICAÇÃO >>>
         try {

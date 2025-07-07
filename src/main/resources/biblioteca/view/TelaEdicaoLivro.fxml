@@ -8,7 +8,6 @@
 <AnchorPane id="AnchorPane"
             prefHeight="530.0"
             prefWidth="650.0"
-            style="-fx-background-color: #f4f6f8;"
             xmlns="http://javafx.com/javafx/17.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.carlos.bibliotecafx.controller.TelaEdicaoLivroController">

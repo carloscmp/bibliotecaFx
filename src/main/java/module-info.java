@@ -4,6 +4,7 @@ module br.com.carlos.bibliotecafx {
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
     requires java.logging;
+    requires java.prefs;
 
 
     opens br.com.carlos.bibliotecafx to javafx.fxml;

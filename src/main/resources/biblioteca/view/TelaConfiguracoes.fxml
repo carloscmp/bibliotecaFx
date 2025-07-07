@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<AnchorPane prefHeight="180.0"
+            prefWidth="450.0"
+            xmlns="http://javafx.com/javafx/17.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.carlos.bibliotecafx.controller.TelaConfiguracoesController">
+    <children>
+        <VBox alignment="TOP_CENTER"
+              spacing="25.0"
+              AnchorPane.bottomAnchor="20.0"
+              AnchorPane.leftAnchor="20.0"
+              AnchorPane.rightAnchor="20.0"
+              AnchorPane.topAnchor="20.0">
+            <children>
+                <Label text="Configurações da Aplicação">
+                    <font>
+                        <Font name="System Bold"
+                              size="20.0"/>
+                    </font>
+                </Label>
+                <HBox alignment="CENTER_LEFT"
+                      spacing="15.0">
+                    <children>
+                        <Label text="Tema Visual:"
+                               style="-fx-font-size: 14px;"/>
+                        <ComboBox fx:id="comboTemas"
+                                  prefWidth="250.0"
+                                  promptText="Selecione um tema"/>
+                    </children>
+                    <padding>
+                        <Insets left="10.0"/>
+                    </padding>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>

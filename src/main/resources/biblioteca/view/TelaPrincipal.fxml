@@ -5,22 +5,21 @@
 <?import javafx.scene.layout.*?>
 <BorderPane prefHeight="600.0"
             prefWidth="1000.0"
-            style="-fx-background-color: #f4f6f8;"
             xmlns="http://javafx.com/javafx/17.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.carlos.bibliotecafx.controller.TelaPrincipalController">
 
     <top>
-        <ToolBar style="-fx-background-color: #ffffff; -fx-padding: 10; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0;">
-            <MenuButton prefHeight="30.0"
-                        prefWidth="176.0"
-                        style="-fx-font-size: 14px; -fx-background-color: #1976d2; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;"
-                        text="➕ Adicionar Livro">
+        <ToolBar styleClass="tool-bar">
+            <MenuButton text="➕ Adicionar Livro">
                 <items>
                     <MenuItem onAction="#abrirTelaBuscaOnline"
                               text="Buscar Online (Google Books)"/>
                     <MenuItem onAction="#abrirTelaCadastroManual"
                               text="Cadastro Manual"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem onAction="#abrirConfiguracoes"
+                              text="⚙️ Configurações"/>
                 </items>
             </MenuButton>
         </ToolBar>
@@ -28,28 +27,25 @@
 
     <center>
         <HBox spacing="20"
-              style="-fx-padding: 20;"
-              HBox.hgrow="ALWAYS">
+              styleClass="main-hbox">
             <children>
-
                 <VBox spacing="10.0"
                       prefWidth="350.0"
                       minWidth="350.0">
                     <children>
                         <TextField fx:id="txtBusca"
-                                   promptText="🔎 Buscar por título ou autor..."
-                                   style="-fx-font-size: 13px; -fx-padding: 7; -fx-background-radius: 20;"/>
+                                   promptText="🔎 Buscar por título ou autor..."/>
                         <ListView fx:id="listaLivros"
                                   VBox.vgrow="ALWAYS"/>
                     </children>
                 </VBox>
+
                 <VBox fx:id="containerDetalhes"
+                      HBox.hgrow="ALWAYS"
                       spacing="15.0"
-                      style="-fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 0);"
-                      HBox.hgrow="ALWAYS">
+                      styleClass="details-pane">
                     <children>
                         <Label fx:id="labelTitulo"
-                               style="-fx-font-size: 22px; -fx-text-fill: #333333; -fx-font-weight: bold;"
                                text="Selecione um livro"
                                wrapText="true"/>
                         <GridPane hgap="10"
@@ -83,33 +79,24 @@
                                        GridPane.columnIndex="1"
                                        GridPane.rowIndex="3"/>
                             </children>
-                            <rowConstraints>
-                                <RowConstraints/>
-                                <RowConstraints/>
-                                <RowConstraints/>
-                            </rowConstraints>
                         </GridPane>
                         <HBox spacing="20"
                               VBox.vgrow="ALWAYS">
                             <children>
                                 <VBox>
-                                    <Label style="-fx-font-size: 14px; -fx-text-fill: #666666;"
-                                           text="Capa:"/>
+                                    <Label text="Capa:"/>
                                     <ImageView fx:id="imageCapa"
                                                fitHeight="240"
                                                fitWidth="160"
                                                preserveRatio="true"/>
                                 </VBox>
                                 <VBox HBox.hgrow="ALWAYS">
-                                    <Label style="-fx-font-size: 14px; -fx-text-fill: #666666;"
-                                           text="Sinopse:"/>
+                                    <Label text="Sinopse:"/>
                                     <ScrollPane fitToWidth="true"
                                                 hbarPolicy="NEVER"
-                                                style="-fx-border-color: #F0F0F0; -fx-background-color: #F0F0F0;"
                                                 VBox.vgrow="ALWAYS">
                                         <content>
                                             <Label fx:id="lblSinopse"
-                                                   style="-fx-font-size: 13px; -fx-text-fill: #444; -fx-padding: 5;"
                                                    wrapText="true"/>
                                         </content>
                                     </ScrollPane>
@@ -122,12 +109,10 @@
                                 <Button fx:id="btnEditarLivro"
                                         disable="true"
                                         onAction="#editarLivroSelecionado"
-                                        style="-fx-font-size: 14px; -fx-background-color: #ffc107; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;"
                                         text="✏️ Editar Livro"/>
                                 <Button fx:id="btnDeletarLivro"
                                         disable="true"
                                         onAction="#deletarLivro"
-                                        style="-fx-font-size: 14px; -fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 5;"
                                         text="❌ Deletar Livro"/>
                             </children>
                         </HBox>

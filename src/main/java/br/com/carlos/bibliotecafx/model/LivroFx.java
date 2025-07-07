@@ -17,6 +17,8 @@ public class LivroFx {
     private final IntegerProperty numeroPaginas = new SimpleIntegerProperty();
     private final ObjectProperty<byte[]> capa = new SimpleObjectProperty<>();
     private final ObjectProperty<byte[]> contraCapa = new SimpleObjectProperty<>();
+    private final BooleanProperty emprestado = new SimpleBooleanProperty();
+    private final StringProperty emprestadoPara = new SimpleStringProperty();
 
     public LivroFx() {
     }
@@ -146,7 +148,7 @@ public class LivroFx {
         return contraCapa;
     }
 
-    
+
     public boolean isLido() {
         return lido.get();
     }
@@ -176,6 +178,30 @@ public class LivroFx {
             return new Image(new ByteArrayInputStream(dados));
         }
         return null;
+    }
+
+    public boolean isEmprestado() {
+        return emprestado.get();
+    }
+
+    public void setEmprestado(boolean emprestado) {
+        this.emprestado.set(emprestado);
+    }
+
+    public BooleanProperty emprestadoProperty() {
+        return emprestado;
+    }
+
+    public String getEmprestadoPara() {
+        return emprestadoPara.get();
+    }
+
+    public void setEmprestadoPara(String nome) {
+        this.emprestadoPara.set(nome);
+    }
+
+    public StringProperty emprestadoParaProperty() {
+        return emprestadoPara;
     }
 
     @Override

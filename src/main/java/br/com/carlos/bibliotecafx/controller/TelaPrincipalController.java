@@ -2,7 +2,9 @@ package br.com.carlos.bibliotecafx.controller;
 
 import br.com.carlos.bibliotecafx.model.LivroFx;
 import br.com.carlos.bibliotecafx.util.ConfigUtil;
+import br.com.carlos.bibliotecafx.util.DialogUtil;
 import br.com.carlos.bibliotecafx.util.HttpUtil;
+import br.com.carlos.bibliotecafx.util.ThemeManager;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
@@ -11,7 +13,6 @@ import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Bounds;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -33,10 +34,8 @@ public class TelaPrincipalController {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    // Lista que guarda todos os livros carregados do backend (nossa "fonte da verdade" local)
     private final ObservableList<LivroFx> todosOsLivros = FXCollections.observableArrayList();
 
-    // Componentes FXML injetados
     @FXML
     private VBox containerDetalhes;
     @FXML
@@ -62,9 +61,6 @@ public class TelaPrincipalController {
     @FXML
     private Label labelStatusLeitura;
 
-    /**
-     * Método de inicialização principal, chamado quando a tela é criada.
-     */
     @FXML
     public void initialize() {
         configurarListView();
@@ -72,11 +68,7 @@ public class TelaPrincipalController {
         carregarLivros();
     }
 
-    /**
-     * Configura a ListView para usar células customizadas e o atalho de teclado.
-     */
-    // Dentro da classe TelaPrincipalController.java
-    // Dentro da classe TelaPrincipalController.java
+
     private void configurarListView() {
         listaLivros.setCellFactory(listView -> new ListCell<>() {
             private Parent graphic;
@@ -135,9 +127,6 @@ public class TelaPrincipalController {
         });
     }
 
-    /**
-     * Configura a lógica de filtro em tempo real para o campo de busca.
-     */
     private void configurarFiltroBusca() {
         FilteredList<LivroFx> livrosFiltrados = new FilteredList<>(todosOsLivros, p -> true);
 
@@ -162,9 +151,6 @@ public class TelaPrincipalController {
         listaLivros.setPlaceholder(new Label("Carregando livros..."));
     }
 
-    /**
-     * Inicia uma Task para carregar os livros do servidor em segundo plano.
-     */
     @FXML
     private void carregarLivros() {
         Task<List<LivroFx>> carregarTask = new Task<>() {
@@ -188,18 +174,12 @@ public class TelaPrincipalController {
             listaLivros.setPlaceholder(new Label("Falha ao carregar livros."));
             Throwable ex = carregarTask.getException();
             ex.printStackTrace();
-            mostrarAlertaErro("Erro de Rede", "Não foi possível buscar os livros do servidor.", ex.getMessage());
+            DialogUtil.showError("Erro de Rede", "Não foi possível buscar os livros do servidor.", ex.getMessage());
         });
 
         new Thread(carregarTask).start();
     }
 
-    /**
-     * Exibe os detalhes do livro selecionado no painel à direita.
-     * Agora inclui a lógica para mostrar o status de leitura.
-     *
-     * @param livro O livro selecionado, ou null se nenhum estiver selecionado.
-     */
     private void exibirDetalhesLivro(LivroFx livro) {
         boolean livroNaoSelecionado = (livro == null);
 
@@ -250,25 +230,21 @@ public class TelaPrincipalController {
         }
     }
 
-    /**
-     * Inicia o processo de exclusão do livro selecionado.
-     */
     @FXML
     private void deletarLivro() {
         LivroFx livroSelecionado = listaLivros.getSelectionModel()
                                               .getSelectedItem();
 
         if (livroSelecionado == null) {
-            mostrarAlertaErro("Nenhum Livro Selecionado", "Por favor, selecione um livro na lista para excluir.", "");
+            DialogUtil.showError("Nenhum Livro Selecionado",
+                    "Por favor, selecione um livro na lista para excluir.", "");
             return;
         }
 
-        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacao.setTitle("Confirmar Exclusão");
-        confirmacao.setHeaderText("Você tem certeza que deseja excluir o livro?");
-        confirmacao.setContentText("Livro: " + livroSelecionado.getTitulo() + "\nAutor: " + livroSelecionado.getAutor());
-
-        Optional<ButtonType> resultado = confirmacao.showAndWait();
+        Optional<ButtonType> resultado = DialogUtil.showConfirmation(
+                "Confirmar Exclusão",
+                "Você tem certeza que deseja excluir o livro?",
+                "Livro: " + livroSelecionado.getTitulo() + "\nAutor: " + livroSelecionado.getAutor());
 
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
             Task<Void> deleteTask = new Task<>() {
@@ -291,29 +267,24 @@ public class TelaPrincipalController {
             deleteTask.setOnFailed(event -> {
                 Throwable ex = deleteTask.getException();
                 ex.printStackTrace();
-                mostrarAlertaErro("Erro ao Excluir", "Ocorreu uma falha ao tentar excluir o livro.", ex.getMessage());
+                DialogUtil.showError("Erro ao Excluir", "Ocorreu uma falha ao tentar excluir o livro.", ex.getMessage());
             });
 
             new Thread(deleteTask).start();
         }
     }
 
-    /**
-     * Abre a janela de edição para o livro selecionado.
-     */
     @FXML
     private void editarLivroSelecionado() {
         LivroFx livroSelecionado = listaLivros.getSelectionModel()
                                               .getSelectedItem();
         if (livroSelecionado == null) return;
-
         try {
             String fxmlPath = ConfigUtil.getProperty("fxml.path.edicao");
             URL fxmlUrl = getClass().getResource(fxmlPath);
             if (fxmlUrl == null) {
                 throw new IOException("Não foi possível encontrar o arquivo FXML. Verifique a chave 'fxml.path.edicao' em config.properties.");
             }
-
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent root = loader.load();
 
@@ -321,27 +292,29 @@ public class TelaPrincipalController {
             controller.inicializarDados(livroSelecionado);
             controller.setOnEdicaoConcluidaCallback(this::carregarLivros);
 
-            Bounds boundsNaTela = containerDetalhes.localToScreen(containerDetalhes.getBoundsInLocal());
             Stage edicaoStage = new Stage();
+            Scene scene = new Scene(root, containerDetalhes.getWidth(), containerDetalhes.getHeight());
+
+            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
+            ThemeManager.applyThemeToScene(scene);
+
             edicaoStage.setTitle("Editando: " + livroSelecionado.getTitulo());
             edicaoStage.initModality(Modality.WINDOW_MODAL);
             edicaoStage.initOwner(listaLivros.getScene()
                                              .getWindow());
-            Scene scene = new Scene(root, containerDetalhes.getWidth(), containerDetalhes.getHeight());
             edicaoStage.setScene(scene);
-            edicaoStage.setX(boundsNaTela.getMinX());
-            edicaoStage.setY(boundsNaTela.getMinY());
+            edicaoStage.setX(containerDetalhes.localToScreen(containerDetalhes.getBoundsInLocal())
+                                              .getMinX());
+            edicaoStage.setY(containerDetalhes.localToScreen(containerDetalhes.getBoundsInLocal())
+                                              .getMinY());
             edicaoStage.showAndWait();
 
         } catch (IOException e) {
             e.printStackTrace();
-            mostrarAlertaErro("Erro ao Abrir Editor", "Não foi possível carregar a tela de edição.", e.getMessage());
+            DialogUtil.showError("Erro ao Abrir Editor", "Não foi possível carregar a tela de edição.", e.getMessage());
         }
     }
 
-    /**
-     * Abre a tela de cadastro manual.
-     */
     @FXML
     private void abrirTelaCadastroManual() {
         try {
@@ -350,12 +323,17 @@ public class TelaPrincipalController {
             Parent root = loader.load();
 
             TelaEdicaoLivroController controller = loader.getController();
-            controller.inicializarDados(new LivroFx()); // Abre em modo de criação
+            controller.inicializarDados(new LivroFx());
             controller.setOnEdicaoConcluidaCallback(this::carregarLivros);
 
             Stage stage = new Stage();
+            Scene scene = new Scene(root);
+
+            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
+            ThemeManager.applyThemeToScene(scene);
+
             stage.setTitle("Adicionar Novo Livro Manualmente");
-            stage.setScene(new Scene(root));
+            stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(listaLivros.getScene()
                                        .getWindow());
@@ -363,13 +341,10 @@ public class TelaPrincipalController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            mostrarAlertaErro("Erro de Interface", "Ocorreu um erro ao carregar a tela de cadastro manual.", e.getMessage());
+            DialogUtil.showError("Erro de Interface", "Ocorreu um erro ao carregar a tela de cadastro manual.", e.getMessage());
         }
     }
 
-    /**
-     * Abre a tela de busca online.
-     */
     @FXML
     private void abrirTelaBuscaOnline() {
         try {
@@ -381,8 +356,13 @@ public class TelaPrincipalController {
             buscaController.setOnBuscaConcluidaCallback(this::carregarLivros);
 
             Stage stage = new Stage();
+            Scene scene = new Scene(root);
+
+            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
+            ThemeManager.applyThemeToScene(scene);
+
             stage.setTitle("Buscar Livro Online");
-            stage.setScene(new Scene(root));
+            stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(listaLivros.getScene()
                                        .getWindow());
@@ -390,18 +370,35 @@ public class TelaPrincipalController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            mostrarAlertaErro("Erro de Interface", "Ocorreu um erro ao carregar a tela de busca online.", e.getMessage());
+            DialogUtil.showError("Erro de Interface", "Ocorreu um erro ao carregar a tela de busca online.", e.getMessage());
         }
     }
 
-    /**
-     * Exibe um diálogo de alerta de erro genérico.
-     */
-    private void mostrarAlertaErro(String titulo, String cabecalho, String conteudo) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(titulo);
-        alert.setHeaderText(cabecalho);
-        alert.setContentText(conteudo);
-        alert.showAndWait();
+    @FXML
+    private void abrirConfiguracoes() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/biblioteca/view/TelaConfiguracoes.fxml"));
+            Parent root = loader.load();
+
+            Stage configStage = new Stage();
+            Scene scene = new Scene(root);
+
+            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
+            ThemeManager.applyThemeToScene(scene);
+
+            // Em TelaPrincipalController.java, método abrirConfiguracoes()
+            TelaConfiguracoesController configController = loader.getController(); // Apenas pegue o controller
+
+            configStage.setTitle("Configurações");
+            configStage.setScene(scene);
+            configStage.initModality(Modality.WINDOW_MODAL);
+            configStage.initOwner(listaLivros.getScene()
+                                             .getWindow());
+            configStage.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            DialogUtil.showError("Erro de Interface", "Não foi possível carregar a tela de configurações.", e.getMessage());
+        }
     }
 }

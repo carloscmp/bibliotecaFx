@@ -2,12 +2,16 @@ package br.com.carlos.bibliotecafx.controller;
 
 import br.com.carlos.bibliotecafx.model.LivroFx;
 import br.com.carlos.bibliotecafx.util.ConfigUtil;
+import br.com.carlos.bibliotecafx.util.DialogUtil;
 import br.com.carlos.bibliotecafx.util.HttpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -63,6 +67,7 @@ public class TelaEdicaoLivroController {
         }
     }
 
+
     public void setOnEdicaoConcluidaCallback(Runnable callback) {
         this.onEdicaoConcluidaCallback = callback;
     }
@@ -83,7 +88,7 @@ public class TelaEdicaoLivroController {
                 this.novaCapaBytes = Files.readAllBytes(arquivoSelecionado.toPath());
                 imgCapa.setImage(new Image(new ByteArrayInputStream(this.novaCapaBytes)));
             } catch (IOException e) {
-                mostrarAlertaErro("Erro de Arquivo", "Não foi possível ler a imagem selecionada.");
+                DialogUtil.showError("Erro de Arquivo", "Não foi possível ler a imagem selecionada.");
                 e.printStackTrace();
             }
         }
@@ -120,7 +125,7 @@ public class TelaEdicaoLivroController {
         };
 
         salvarTask.setOnSucceeded(event -> Platform.runLater(() -> {
-            mostrarAlertaSucesso("Sucesso", "As alterações foram salvas com sucesso!");
+            DialogUtil.showSuccess("Sucesso", "As alterações foram salvas com sucesso!");
 
             if (onEdicaoConcluidaCallback != null) {
                 onEdicaoConcluidaCallback.run();
@@ -131,7 +136,7 @@ public class TelaEdicaoLivroController {
         salvarTask.setOnFailed(event -> {
             Throwable ex = salvarTask.getException();
             ex.printStackTrace();
-            Platform.runLater(() -> mostrarAlertaErro("Erro no Servidor", "Falha ao atualizar o livro: " + ex.getMessage()));
+            Platform.runLater(() -> DialogUtil.showError("Erro no Servidor", "Falha ao atualizar o livro: " + ex.getMessage()));
         });
 
         new Thread(salvarTask).start();
@@ -141,7 +146,7 @@ public class TelaEdicaoLivroController {
         String titulo = txtTitulo.getText();
         if (titulo == null || titulo.trim()
                                     .isEmpty()) {
-            mostrarAlertaErro("Erro de Validação", "O campo 'Título' é obrigatório.");
+            DialogUtil.showError("Erro de Validação", "O campo 'Título' é obrigatório.");
             return false;
         }
         try {
@@ -150,7 +155,7 @@ public class TelaEdicaoLivroController {
                        .isEmpty()) Integer.parseInt(txtAno.getText()
                                                           .trim());
         } catch (NumberFormatException e) {
-            mostrarAlertaErro("Erro de Validação", "O campo 'Ano' deve ser um número válido.");
+            DialogUtil.showError("Erro de Validação", "O campo 'Ano' deve ser um número válido.");
             return false;
         }
         try {
@@ -159,7 +164,7 @@ public class TelaEdicaoLivroController {
                            .isEmpty()) Integer.parseInt(txtPaginas.getText()
                                                                   .trim());
         } catch (NumberFormatException e) {
-            mostrarAlertaErro("Erro de Validação", "O campo 'Páginas' deve ser um número válido.");
+            DialogUtil.showError("Erro de Validação", "O campo 'Páginas' deve ser um número válido.");
             return false;
         }
         return true;
@@ -170,21 +175,5 @@ public class TelaEdicaoLivroController {
         Stage stage = (Stage) btnCancelar.getScene()
                                          .getWindow();
         stage.close();
-    }
-
-    private void mostrarAlertaSucesso(String titulo, String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
-    }
-
-    private void mostrarAlertaErro(String titulo, String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
     }
 }
