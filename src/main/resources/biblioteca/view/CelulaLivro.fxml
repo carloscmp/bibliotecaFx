@@ -41,6 +41,8 @@
                         <Font size="11.0"/>
                     </font>
                 </Label>
+                <Label fx:id="lblStatusEmprestimo"
+                       style="-fx-font-weight: bold;"/>
                 <Label fx:id="lblStatusLeitura"
                        text="Status"/>
             </children>

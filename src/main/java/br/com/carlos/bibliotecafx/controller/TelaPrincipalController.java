@@ -60,6 +60,8 @@ public class TelaPrincipalController {
     private Button btnEditarLivro;
     @FXML
     private Label labelStatusLeitura;
+    @FXML
+    private Hyperlink linkEmprestimo;
 
     @FXML
     public void initialize() {
@@ -95,8 +97,6 @@ public class TelaPrincipalController {
                     controller.setLivro(livro);
 
                     if (graphic != null) {
-                        // <<< CORREÇÃO AQUI: Fazendo o "cast" para (Region) >>>
-                        // Isso nos dá acesso às propriedades de tamanho como prefWidthProperty.
                         ((Region) graphic).prefWidthProperty()
                                           .bind(listView.widthProperty()
                                                         .subtract(20));
@@ -107,7 +107,6 @@ public class TelaPrincipalController {
             }
         });
 
-        // O resto do método com os listeners continua igual
         listaLivros.getSelectionModel()
                    .selectedItemProperty()
                    .addListener(
@@ -184,7 +183,6 @@ public class TelaPrincipalController {
         boolean livroNaoSelecionado = (livro == null);
 
         if (livroNaoSelecionado) {
-            // Limpa todos os campos se nenhum livro for selecionado
             labelTitulo.setText("Selecione um livro");
             labelAutor.setText("---");
             labelAno.setText("---");
@@ -192,21 +190,17 @@ public class TelaPrincipalController {
             lblSinopse.setText("");
             imageCapa.setImage(null);
 
-            // <<< ALTERAÇÃO AQUI >>>
-            // Limpa o label de status também
             labelStatusLeitura.setText("---");
-            labelStatusLeitura.setStyle("-fx-text-fill: black; -fx-font-weight: normal;"); // Reseta o estilo
-
+            labelStatusLeitura.setStyle("-fx-text-fill: black; -fx-font-weight: normal;");
+            linkEmprestimo.setText("---");
+            linkEmprestimo.setOnAction(null);
         } else {
-            // Preenche os campos com as informações do livro selecionado
             labelTitulo.setText(livro.getTitulo());
             labelAutor.setText(livro.getAutor());
             labelAno.setText(livro.getAno() == 0 ? "Não informado" : String.valueOf(livro.getAno()));
             labelPaginas.setText(livro.getNumeroPaginas() == 0 ? "Não informado" : String.valueOf(livro.getNumeroPaginas()));
             lblSinopse.setText(livro.getSinopse());
 
-            // <<< ALTERAÇÃO AQUI >>>
-            // Adiciona a lógica para definir o texto e a cor do status de leitura
             if (livro.isLido()) {
                 labelStatusLeitura.setText("📗 Lido");
                 labelStatusLeitura.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;"); // Verde
@@ -214,20 +208,111 @@ public class TelaPrincipalController {
                 labelStatusLeitura.setText("📕 Não Lido");
                 labelStatusLeitura.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;"); // Vermelho
             }
+            if (livro.isEmprestado()) {
+                linkEmprestimo.setText("➡️ Emprestado para: " + livro.getEmprestadoPara());
+                linkEmprestimo.setStyle("-fx-text-fill: #e67e22;");
+                // Ação de clique: Marcar como devolvido
+                linkEmprestimo.setOnAction(event -> marcarComoDevolvido(livro));
+            } else {
+                linkEmprestimo.setText("✔️ Disponível (clique para emprestar)");
+                linkEmprestimo.setStyle("-fx-text-fill: #28a745;"); // Verde
+                // Ação de clique: Registrar um novo empréstimo
+                linkEmprestimo.setOnAction(event -> registrarNovoEmprestimo(livro));
+            }
 
-            // Lógica para exibir a capa (permanece a mesma)
             Image imagemCapa = livro.getImagemCapa();
             if (imagemCapa != null) {
                 if (imagemCapa.isError()) {
                     System.err.println("Erro ao carregar a imagem para o livro: " + livro.getTitulo());
-                    imageCapa.setImage(null); // Opcional: mostrar uma imagem de placeholder
+                    imageCapa.setImage(null);
                 } else {
                     imageCapa.setImage(imagemCapa);
                 }
             } else {
-                imageCapa.setImage(null); // Opcional: mostrar uma imagem de placeholder
+                imageCapa.setImage(null);
             }
         }
+    }
+
+    // Adicione estes dois métodos em TelaPrincipalController.java
+
+    private void registrarNovoEmprestimo(LivroFx livro) {
+        // Abre uma pequena janela pedindo o nome da pessoa
+        TextInputDialog dialog = new TextInputDialog();
+        ThemeManager.styleDialog(dialog); // Aplica nosso tema ao diálogo
+        dialog.setTitle("Registrar Empréstimo");
+        dialog.setHeaderText("Para quem você está emprestando '" + livro.getTitulo() + "'?");
+        dialog.setContentText("Nome:");
+
+        Optional<String> resultado = dialog.showAndWait();
+
+        // Se o usuário digitou um nome e clicou OK...
+        resultado.ifPresent(nome -> {
+            if (!nome.trim()
+                     .isEmpty()) {
+                // Atualiza o objeto localmente
+                livro.setEmprestado(true);
+                livro.setEmprestadoPara(nome);
+
+                // Envia a atualização para o backend (em uma Task)
+                atualizarLivroNoServidor(livro);
+            }
+        });
+    }
+
+    private void marcarComoDevolvido(LivroFx livro) {
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
+        ThemeManager.styleDialog(confirmacao);
+        confirmacao.setTitle("Confirmar Devolução");
+        confirmacao.setHeaderText("Deseja marcar este livro como devolvido?");
+        confirmacao.setContentText("Livro: " + livro.getTitulo());
+
+        Optional<ButtonType> resultado = confirmacao.showAndWait();
+
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
+            // Atualiza o objeto localmente
+            livro.setEmprestado(false);
+            livro.setEmprestadoPara(null); // Limpa o nome
+
+            // Envia a atualização para o backend
+            atualizarLivroNoServidor(livro);
+        }
+    }
+
+    /**
+     * Método auxiliar reutilizável para enviar atualizações (PUT) ao servidor.
+     */
+    /**
+     * Método auxiliar reutilizável para enviar atualizações (PUT) ao servidor.
+     */
+    private void atualizarLivroNoServidor(LivroFx livro) {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                ObjectMapper mapper = new ObjectMapper();
+                String json = mapper.writeValueAsString(livro);
+                String url = ConfigUtil.getProperty("server.url") + "/" + livro.getId();
+                HttpUtil.put(url, json);
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            System.out.println("Livro atualizado com sucesso no servidor.");
+            carregarLivros();
+        });
+
+        // <<< CORREÇÃO APLICADA AQUI >>>
+        task.setOnFailed(event -> {
+            // Primeiro, pegamos a exceção da task que falhou.
+            Throwable ex = task.getException();
+
+            // Agora podemos usá-la.
+            ex.printStackTrace();
+            DialogUtil.showError("Erro de Rede", "Não foi possível atualizar o livro no servidor.", ex.getMessage());
+        });
+
+        new Thread(task).start();
     }
 
     @FXML
@@ -295,7 +380,6 @@ public class TelaPrincipalController {
             Stage edicaoStage = new Stage();
             Scene scene = new Scene(root, containerDetalhes.getWidth(), containerDetalhes.getHeight());
 
-            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
             ThemeManager.applyThemeToScene(scene);
 
             edicaoStage.setTitle("Editando: " + livroSelecionado.getTitulo());
@@ -329,7 +413,6 @@ public class TelaPrincipalController {
             Stage stage = new Stage();
             Scene scene = new Scene(root);
 
-            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
             ThemeManager.applyThemeToScene(scene);
 
             stage.setTitle("Adicionar Novo Livro Manualmente");
@@ -383,10 +466,8 @@ public class TelaPrincipalController {
             Stage configStage = new Stage();
             Scene scene = new Scene(root);
 
-            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
             ThemeManager.applyThemeToScene(scene);
 
-            // Em TelaPrincipalController.java, método abrirConfiguracoes()
             TelaConfiguracoesController configController = loader.getController(); // Apenas pegue o controller
 
             configStage.setTitle("Configurações");

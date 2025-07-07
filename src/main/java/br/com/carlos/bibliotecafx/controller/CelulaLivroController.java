@@ -18,6 +18,8 @@ public class CelulaLivroController {
     private Label lblAutor;
     @FXML
     private Label lblStatusLeitura;
+    @FXML
+    private Label lblStatusEmprestimo;
 
     public void setLivro(LivroFx livro) {
         lblTitulo.setText(livro.getTitulo());
@@ -35,6 +37,12 @@ public class CelulaLivroController {
         } else {
             lblStatusLeitura.setText("📕");
             lblStatusLeitura.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
+        }
+        if (livro.isEmprestado()) {
+            lblStatusEmprestimo.setText("➡️ Emprestado");
+            lblStatusEmprestimo.setStyle("-fx-text-fill: #e67e22;"); // Laranja
+        } else {
+            lblStatusEmprestimo.setText(""); // Fica invisível se não estiver emprestado
         }
     }
 }

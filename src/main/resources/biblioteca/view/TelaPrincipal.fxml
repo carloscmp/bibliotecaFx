@@ -78,6 +78,12 @@
                                        text="---"
                                        GridPane.columnIndex="1"
                                        GridPane.rowIndex="3"/>
+                                <Label text="Empréstimo:"
+                                       GridPane.rowIndex="4"/>
+                                <Hyperlink fx:id="linkEmprestimo"
+                                           text="---"
+                                           GridPane.columnIndex="1"
+                                           GridPane.rowIndex="4"/>
                             </children>
                         </GridPane>
                         <HBox spacing="20"
