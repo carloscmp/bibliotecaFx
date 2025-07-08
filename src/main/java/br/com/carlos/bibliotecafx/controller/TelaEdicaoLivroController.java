@@ -1,12 +1,11 @@
 package br.com.carlos.bibliotecafx.controller;
 
+import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import br.com.carlos.bibliotecafx.model.LivroFx;
-import br.com.carlos.bibliotecafx.util.ConfigUtil;
 import br.com.carlos.bibliotecafx.util.DialogUtil;
-import br.com.carlos.bibliotecafx.util.HttpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
+import br.com.carlos.bibliotecafx.util.FilaSincronizacao;
+import br.com.carlos.bibliotecafx.util.GerenciadorDadosLocal;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -46,11 +45,19 @@ public class TelaEdicaoLivroController {
     private Button btnCancelar;
 
     private LivroFx livroAtual;
+    private ObservableList<LivroFx> listaPrincipalDeLivros; // Referência à lista da tela principal
     private byte[] novaCapaBytes;
     private Runnable onEdicaoConcluidaCallback;
 
-    public void inicializarDados(LivroFx livro) {
+    /**
+     * Método de inicialização modificado. Agora recebe também a lista principal de livros.
+     *
+     * @param livro         O livro a ser editado, ou um novo livro vazio.
+     * @param todosOsLivros A lista principal da aplicação.
+     */
+    public void inicializarDados(LivroFx livro, ObservableList<LivroFx> todosOsLivros) {
         this.livroAtual = livro;
+        this.listaPrincipalDeLivros = todosOsLivros;
         this.novaCapaBytes = livro.getCapa();
 
         txtTitulo.setText(livro.getTitulo());
@@ -66,7 +73,6 @@ public class TelaEdicaoLivroController {
             imgCapa.setImage(null);
         }
     }
-
 
     public void setOnEdicaoConcluidaCallback(Runnable callback) {
         this.onEdicaoConcluidaCallback = callback;
@@ -94,12 +100,19 @@ public class TelaEdicaoLivroController {
         }
     }
 
+    /**
+     * Lógica de salvamento refatorada para o modo "Offline-First".
+     * A ação agora é instantânea e local.
+     */
     @FXML
     private void salvarAlteracoes() {
         if (!validarCampos()) {
             return;
         }
-        livroAtual.setLido(checkLido.isSelected());
+
+        boolean isNewBook = (livroAtual.getId() == null || livroAtual.getId() == 0);
+
+        // Atualiza o objeto com os dados dos campos do formulário
         livroAtual.setTitulo(txtTitulo.getText());
         livroAtual.setAutor(txtAutor.getText());
         livroAtual.setAno(txtAno.getText()
@@ -112,34 +125,35 @@ public class TelaEdicaoLivroController {
                                                                                           .trim()));
         livroAtual.setSinopse(txtSinopse.getText());
         livroAtual.setCapa(this.novaCapaBytes);
+        livroAtual.setLido(checkLido.isSelected());
 
-        Task<Void> salvarTask = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writeValueAsString(livroAtual);
-                String url = ConfigUtil.getProperty("server.url") + "/" + livroAtual.getId();
-                HttpUtil.put(url, json);
-                return null;
-            }
-        };
+        AcaoPendente acao;
+        if (isNewBook) {
+            // Se é um livro novo, gera um ID local temporário e o adiciona à lista principal
+            livroAtual.setId(-System.currentTimeMillis());
+            listaPrincipalDeLivros.add(livroAtual);
+            acao = new AcaoPendente("ADD", null, livroAtual);
+            System.out.println("Novo livro adicionado localmente com ID temporário: " + livroAtual.getId());
+        } else {
+            // Se é uma edição, a lista principal já é atualizada automaticamente
+            // pois 'livroAtual' é uma referência a um objeto que já está na lista.
+            acao = new AcaoPendente("UPDATE", livroAtual.getId(), livroAtual);
+            System.out.println("Livro ID " + livroAtual.getId() + " atualizado localmente.");
+        }
 
-        salvarTask.setOnSucceeded(event -> Platform.runLater(() -> {
-            DialogUtil.showSuccess("Sucesso", "As alterações foram salvas com sucesso!");
+        // Adiciona a tarefa na fila de sincronização
+        FilaSincronizacao.adicionarOuAtualizarAcao(acao);
 
-            if (onEdicaoConcluidaCallback != null) {
-                onEdicaoConcluidaCallback.run();
-            }
-            cancelarEdicao();
-        }));
+        // Salva a lista inteira (com o novo item ou com o item atualizado) no arquivo local
+        GerenciadorDadosLocal.salvarBiblioteca(listaPrincipalDeLivros);
 
-        salvarTask.setOnFailed(event -> {
-            Throwable ex = salvarTask.getException();
-            ex.printStackTrace();
-            Platform.runLater(() -> DialogUtil.showError("Erro no Servidor", "Falha ao atualizar o livro: " + ex.getMessage()));
-        });
+        // Chama o callback para que a tela principal possa se recarregar do arquivo local
+        if (onEdicaoConcluidaCallback != null) {
+            onEdicaoConcluidaCallback.run();
+        }
 
-        new Thread(salvarTask).start();
+        DialogUtil.showSuccess("Salvo!", "As alterações foram salvas localmente e serão sincronizadas em breve.");
+        cancelarEdicao(); // Fecha a janela
     }
 
     private boolean validarCampos() {

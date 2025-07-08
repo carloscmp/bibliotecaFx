@@ -1,10 +1,9 @@
 package br.com.carlos.bibliotecafx.controller;
 
+import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import br.com.carlos.bibliotecafx.model.LivroFx;
-import br.com.carlos.bibliotecafx.util.ConfigUtil;
-import br.com.carlos.bibliotecafx.util.DialogUtil;
-import br.com.carlos.bibliotecafx.util.HttpUtil;
-import br.com.carlos.bibliotecafx.util.ThemeManager;
+import br.com.carlos.bibliotecafx.service.ServicoSincronizacao;
+import br.com.carlos.bibliotecafx.util.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
@@ -22,19 +21,20 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class TelaPrincipalController {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
     private final ObservableList<LivroFx> todosOsLivros = FXCollections.observableArrayList();
+    private ScheduledExecutorService executorSincronizacao;
 
     @FXML
     private VBox containerDetalhes;
@@ -67,9 +67,9 @@ public class TelaPrincipalController {
     public void initialize() {
         configurarListView();
         configurarFiltroBusca();
-        carregarLivros();
+        sincronizacaoInicialSeNecessario();
+        iniciarServicoDeSincronizacao();
     }
-
 
     private void configurarListView() {
         listaLivros.setCellFactory(listView -> new ListCell<>() {
@@ -89,19 +89,16 @@ public class TelaPrincipalController {
             @Override
             protected void updateItem(LivroFx livro, boolean empty) {
                 super.updateItem(livro, empty);
-
                 if (empty || livro == null) {
                     setText(null);
                     setGraphic(null);
                 } else {
                     controller.setLivro(livro);
-
                     if (graphic != null) {
                         ((Region) graphic).prefWidthProperty()
                                           .bind(listView.widthProperty()
                                                         .subtract(20));
                     }
-
                     setGraphic(graphic);
                 }
             }
@@ -128,7 +125,6 @@ public class TelaPrincipalController {
 
     private void configurarFiltroBusca() {
         FilteredList<LivroFx> livrosFiltrados = new FilteredList<>(todosOsLivros, p -> true);
-
         txtBusca.textProperty()
                 .addListener((observable, oldValue, newValue) -> {
                     livrosFiltrados.setPredicate(livro -> {
@@ -145,43 +141,65 @@ public class TelaPrincipalController {
                                                                        .contains(termoBusca);
                     });
                 });
-
         listaLivros.setItems(livrosFiltrados);
         listaLivros.setPlaceholder(new Label("Carregando livros..."));
     }
 
-    @FXML
-    private void carregarLivros() {
-        Task<List<LivroFx>> carregarTask = new Task<>() {
-            @Override
-            protected List<LivroFx> call() throws Exception {
-                String url = ConfigUtil.getProperty("server.url");
-                String json = HttpUtil.get(url);
-                return MAPPER.readValue(json, new TypeReference<>() {
-                });
-            }
-        };
+    private void sincronizacaoInicialSeNecessario() {
+        if (GerenciadorDadosLocal.carregarBiblioteca()
+                                 .isEmpty()) {
+            System.out.println("Arquivo local não encontrado. Realizando sincronização inicial com o servidor...");
+            Task<List<LivroFx>> task = new Task<>() {
+                @Override
+                protected List<LivroFx> call() throws Exception {
+                    String url = ConfigUtil.getProperty("server.url");
+                    return new ObjectMapper().readValue(HttpUtil.get(url), new TypeReference<>() {
+                    });
+                }
+            };
+            task.setOnSucceeded(e -> {
+                List<LivroFx> livrosDoServidor = task.getValue();
+                GerenciadorDadosLocal.salvarBiblioteca(livrosDoServidor);
+                todosOsLivros.setAll(livrosDoServidor);
+                System.out.println("Sincronização inicial concluída. " + livrosDoServidor.size() + " livros carregados.");
+            });
+            task.setOnFailed(e -> {
+                e.getSource()
+                 .getException()
+                 .printStackTrace();
+                DialogUtil.showError("Erro de Rede", "Não foi possível realizar a sincronização inicial com o servidor.");
+                carregarLivrosLocalmente();
+            });
+            new Thread(task).start();
+        } else {
+            carregarLivrosLocalmente();
+        }
+    }
 
-        carregarTask.setOnSucceeded(event -> {
-            todosOsLivros.setAll(carregarTask.getValue());
-            if (todosOsLivros.isEmpty()) {
-                listaLivros.setPlaceholder(new Label("Nenhum livro na estante."));
-            }
-        });
+    private void carregarLivrosLocalmente() {
+        System.out.println("Carregando livros do arquivo local...");
+        todosOsLivros.setAll(GerenciadorDadosLocal.carregarBiblioteca());
+        if (todosOsLivros.isEmpty()) {
+            listaLivros.setPlaceholder(new Label("Nenhum livro na estante. Adicione um!"));
+        }
+        listaLivros.getSelectionModel()
+                   .clearSelection();
+    }
 
-        carregarTask.setOnFailed(event -> {
-            listaLivros.setPlaceholder(new Label("Falha ao carregar livros."));
-            Throwable ex = carregarTask.getException();
-            ex.printStackTrace();
-            DialogUtil.showError("Erro de Rede", "Não foi possível buscar os livros do servidor.", ex.getMessage());
-        });
+    private void iniciarServicoDeSincronizacao() {
+        executorSincronizacao = Executors.newSingleThreadScheduledExecutor();
+        executorSincronizacao.scheduleAtFixedRate(new ServicoSincronizacao(), 10, 300, TimeUnit.SECONDS);
+    }
 
-        new Thread(carregarTask).start();
+    public void shutdown() {
+        if (executorSincronizacao != null && !executorSincronizacao.isShutdown()) {
+            System.out.println("Desligando serviço de sincronização...");
+            executorSincronizacao.shutdownNow();
+        }
     }
 
     private void exibirDetalhesLivro(LivroFx livro) {
         boolean livroNaoSelecionado = (livro == null);
-
         if (livroNaoSelecionado) {
             labelTitulo.setText("Selecione um livro");
             labelAutor.setText("---");
@@ -189,7 +207,6 @@ public class TelaPrincipalController {
             labelPaginas.setText("---");
             lblSinopse.setText("");
             imageCapa.setImage(null);
-
             labelStatusLeitura.setText("---");
             labelStatusLeitura.setStyle("-fx-text-fill: black; -fx-font-weight: normal;");
             linkEmprestimo.setText("---");
@@ -202,24 +219,21 @@ public class TelaPrincipalController {
             lblSinopse.setText(livro.getSinopse());
 
             if (livro.isLido()) {
-                labelStatusLeitura.setText("📗 Lido");
-                labelStatusLeitura.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;"); // Verde
+                labelStatusLeitura.setText("✅ Lido");
+                labelStatusLeitura.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
             } else {
                 labelStatusLeitura.setText("📕 Não Lido");
-                labelStatusLeitura.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;"); // Vermelho
+                labelStatusLeitura.setStyle("-fx-text-fill: #dc3545; -fx-font-weight: bold;");
             }
             if (livro.isEmprestado()) {
                 linkEmprestimo.setText("➡️ Emprestado para: " + livro.getEmprestadoPara());
                 linkEmprestimo.setStyle("-fx-text-fill: #e67e22;");
-                // Ação de clique: Marcar como devolvido
                 linkEmprestimo.setOnAction(event -> marcarComoDevolvido(livro));
             } else {
                 linkEmprestimo.setText("✔️ Disponível (clique para emprestar)");
-                linkEmprestimo.setStyle("-fx-text-fill: #28a745;"); // Verde
-                // Ação de clique: Registrar um novo empréstimo
+                linkEmprestimo.setStyle("-fx-text-fill: #28a745;");
                 linkEmprestimo.setOnAction(event -> registrarNovoEmprestimo(livro));
             }
-
             Image imagemCapa = livro.getImagemCapa();
             if (imagemCapa != null) {
                 if (imagemCapa.isError()) {
@@ -234,128 +248,66 @@ public class TelaPrincipalController {
         }
     }
 
-    // Adicione estes dois métodos em TelaPrincipalController.java
-
-    private void registrarNovoEmprestimo(LivroFx livro) {
-        // Abre uma pequena janela pedindo o nome da pessoa
-        TextInputDialog dialog = new TextInputDialog();
-        ThemeManager.styleDialog(dialog); // Aplica nosso tema ao diálogo
-        dialog.setTitle("Registrar Empréstimo");
-        dialog.setHeaderText("Para quem você está emprestando '" + livro.getTitulo() + "'?");
-        dialog.setContentText("Nome:");
-
-        Optional<String> resultado = dialog.showAndWait();
-
-        // Se o usuário digitou um nome e clicou OK...
-        resultado.ifPresent(nome -> {
-            if (!nome.trim()
-                     .isEmpty()) {
-                // Atualiza o objeto localmente
-                livro.setEmprestado(true);
-                livro.setEmprestadoPara(nome);
-
-                // Envia a atualização para o backend (em uma Task)
-                atualizarLivroNoServidor(livro);
-            }
-        });
-    }
-
-    private void marcarComoDevolvido(LivroFx livro) {
-        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
-        ThemeManager.styleDialog(confirmacao);
-        confirmacao.setTitle("Confirmar Devolução");
-        confirmacao.setHeaderText("Deseja marcar este livro como devolvido?");
-        confirmacao.setContentText("Livro: " + livro.getTitulo());
-
-        Optional<ButtonType> resultado = confirmacao.showAndWait();
-
-        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            // Atualiza o objeto localmente
-            livro.setEmprestado(false);
-            livro.setEmprestadoPara(null); // Limpa o nome
-
-            // Envia a atualização para o backend
-            atualizarLivroNoServidor(livro);
-        }
-    }
-
-    /**
-     * Método auxiliar reutilizável para enviar atualizações (PUT) ao servidor.
-     */
-    /**
-     * Método auxiliar reutilizável para enviar atualizações (PUT) ao servidor.
-     */
-    private void atualizarLivroNoServidor(LivroFx livro) {
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writeValueAsString(livro);
-                String url = ConfigUtil.getProperty("server.url") + "/" + livro.getId();
-                HttpUtil.put(url, json);
-                return null;
-            }
-        };
-
-        task.setOnSucceeded(event -> {
-            System.out.println("Livro atualizado com sucesso no servidor.");
-            carregarLivros();
-        });
-
-        // <<< CORREÇÃO APLICADA AQUI >>>
-        task.setOnFailed(event -> {
-            // Primeiro, pegamos a exceção da task que falhou.
-            Throwable ex = task.getException();
-
-            // Agora podemos usá-la.
-            ex.printStackTrace();
-            DialogUtil.showError("Erro de Rede", "Não foi possível atualizar o livro no servidor.", ex.getMessage());
-        });
-
-        new Thread(task).start();
-    }
-
     @FXML
     private void deletarLivro() {
         LivroFx livroSelecionado = listaLivros.getSelectionModel()
                                               .getSelectedItem();
-
         if (livroSelecionado == null) {
-            DialogUtil.showError("Nenhum Livro Selecionado",
-                    "Por favor, selecione um livro na lista para excluir.", "");
+            DialogUtil.showWarning("Nenhum Livro Selecionado", "Por favor, selecione um livro para excluir.");
             return;
         }
 
         Optional<ButtonType> resultado = DialogUtil.showConfirmation(
                 "Confirmar Exclusão",
                 "Você tem certeza que deseja excluir o livro?",
-                "Livro: " + livroSelecionado.getTitulo() + "\nAutor: " + livroSelecionado.getAutor());
+                "Livro: " + livroSelecionado.getTitulo()
+        );
 
         if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
-            Task<Void> deleteTask = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    Long id = livroSelecionado.getId();
-                    String urlBase = ConfigUtil.getProperty("server.url");
-                    String urlDelecao = urlBase + "/" + id;
-                    HttpUtil.delete(urlDelecao);
-                    return null;
-                }
-            };
+            todosOsLivros.remove(livroSelecionado);
+            GerenciadorDadosLocal.salvarBiblioteca(todosOsLivros);
+            System.out.println("Livro removido localmente: " + livroSelecionado.getTitulo());
 
-            deleteTask.setOnSucceeded(event -> {
-                listaLivros.getSelectionModel()
-                           .clearSelection();
-                carregarLivros(); // Recarrega a lista para refletir a exclusão
-            });
+            if (livroSelecionado.getId() > 0) {
+                FilaSincronizacao.adicionarOuAtualizarAcao(new AcaoPendente("DELETE", livroSelecionado.getId(), null));
+                System.out.println("Ação DELETE adicionada à fila para o livro ID: " + livroSelecionado.getId());
+            }
+        }
+    }
 
-            deleteTask.setOnFailed(event -> {
-                Throwable ex = deleteTask.getException();
-                ex.printStackTrace();
-                DialogUtil.showError("Erro ao Excluir", "Ocorreu uma falha ao tentar excluir o livro.", ex.getMessage());
-            });
+    private void registrarNovoEmprestimo(LivroFx livro) {
+        // Uma única chamada ao nosso novo método utilitário
+        Optional<String> resultado = DialogUtil.showTextInput(
+                "Registrar Empréstimo",
+                "Para quem você está emprestando '" + livro.getTitulo() + "'?",
+                "Nome:"
+        );
 
-            new Thread(deleteTask).start();
+        // A lógica para processar o resultado continua a mesma
+        resultado.ifPresent(nome -> {
+            if (!nome.trim()
+                     .isEmpty()) {
+                livro.setEmprestado(true);
+                livro.setEmprestadoPara(nome);
+                GerenciadorDadosLocal.salvarBiblioteca(todosOsLivros);
+                FilaSincronizacao.adicionarOuAtualizarAcao(new AcaoPendente("UPDATE", livro.getId(), livro));
+                exibirDetalhesLivro(livro);
+                listaLivros.refresh();
+            }
+        });
+    }
+
+    private void marcarComoDevolvido(LivroFx livro) {
+        Optional<ButtonType> resultado = DialogUtil.showConfirmation(
+                "Confirmar Devolução", "Deseja marcar este livro como devolvido?", "Livro: " + livro.getTitulo());
+
+        if (resultado.isPresent() && resultado.get() == ButtonType.OK) {
+            livro.setEmprestado(false);
+            livro.setEmprestadoPara(null);
+            GerenciadorDadosLocal.salvarBiblioteca(todosOsLivros);
+            FilaSincronizacao.adicionarOuAtualizarAcao(new AcaoPendente("UPDATE", livro.getId(), livro));
+            exibirDetalhesLivro(livro);
+            listaLivros.refresh();
         }
     }
 
@@ -364,91 +316,56 @@ public class TelaPrincipalController {
         LivroFx livroSelecionado = listaLivros.getSelectionModel()
                                               .getSelectedItem();
         if (livroSelecionado == null) return;
-        try {
-            String fxmlPath = ConfigUtil.getProperty("fxml.path.edicao");
-            URL fxmlUrl = getClass().getResource(fxmlPath);
-            if (fxmlUrl == null) {
-                throw new IOException("Não foi possível encontrar o arquivo FXML. Verifique a chave 'fxml.path.edicao' em config.properties.");
-            }
-            FXMLLoader loader = new FXMLLoader(fxmlUrl);
-            Parent root = loader.load();
-
-            TelaEdicaoLivroController controller = loader.getController();
-            controller.inicializarDados(livroSelecionado);
-            controller.setOnEdicaoConcluidaCallback(this::carregarLivros);
-
-            Stage edicaoStage = new Stage();
-            Scene scene = new Scene(root, containerDetalhes.getWidth(), containerDetalhes.getHeight());
-
-            ThemeManager.applyThemeToScene(scene);
-
-            edicaoStage.setTitle("Editando: " + livroSelecionado.getTitulo());
-            edicaoStage.initModality(Modality.WINDOW_MODAL);
-            edicaoStage.initOwner(listaLivros.getScene()
-                                             .getWindow());
-            edicaoStage.setScene(scene);
-            edicaoStage.setX(containerDetalhes.localToScreen(containerDetalhes.getBoundsInLocal())
-                                              .getMinX());
-            edicaoStage.setY(containerDetalhes.localToScreen(containerDetalhes.getBoundsInLocal())
-                                              .getMinY());
-            edicaoStage.showAndWait();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            DialogUtil.showError("Erro ao Abrir Editor", "Não foi possível carregar a tela de edição.", e.getMessage());
-        }
+        abrirTelaDeEdicao(livroSelecionado);
     }
 
     @FXML
     private void abrirTelaCadastroManual() {
+        abrirTelaDeEdicao(new LivroFx());
+    }
+
+    private void abrirTelaDeEdicao(LivroFx livro) {
         try {
-            String fxmlPath = ConfigUtil.getProperty("fxml.path.edicao");
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(ConfigUtil.getProperty("fxml.path.edicao")));
             Parent root = loader.load();
 
             TelaEdicaoLivroController controller = loader.getController();
-            controller.inicializarDados(new LivroFx());
-            controller.setOnEdicaoConcluidaCallback(this::carregarLivros);
+            controller.inicializarDados(livro, todosOsLivros);
+            controller.setOnEdicaoConcluidaCallback(this::carregarLivrosLocalmente);
 
+            // Declaração e uso consistente da variável 'stage'
             Stage stage = new Stage();
             Scene scene = new Scene(root);
+            Window owner = listaLivros.getScene()
+                                      .getWindow();
+            String title = (livro.getId() == null || livro.getId() == 0) ? "Adicionar Novo Livro" : "Editando: " + livro.getTitulo();
 
-            ThemeManager.applyThemeToScene(scene);
-
-            stage.setTitle("Adicionar Novo Livro Manualmente");
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(listaLivros.getScene()
-                                       .getWindow());
+            WindowUtil.configureModalStage(owner, stage, title, scene);
             stage.showAndWait();
 
         } catch (Exception e) {
             e.printStackTrace();
-            DialogUtil.showError("Erro de Interface", "Ocorreu um erro ao carregar a tela de cadastro manual.", e.getMessage());
+            DialogUtil.showError("Erro de Interface", "Não foi possível carregar a tela de edição.", e.getMessage());
         }
     }
 
     @FXML
     private void abrirTelaBuscaOnline() {
         try {
-            String fxmlPath = ConfigUtil.getProperty("fxml.path.busca");
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(ConfigUtil.getProperty("fxml.path.busca")));
             Parent root = loader.load();
 
             TelaBuscaLivroController buscaController = loader.getController();
-            buscaController.setOnBuscaConcluidaCallback(this::carregarLivros);
+            buscaController.setOnBuscaConcluidaCallback(this::carregarLivrosLocalmente);
+            buscaController.setListaPrincipal(this.todosOsLivros);
 
+            // Declaração e uso consistente da variável 'stage'
             Stage stage = new Stage();
             Scene scene = new Scene(root);
+            Window owner = listaLivros.getScene()
+                                      .getWindow();
 
-            // <<< APLICA O TEMA ATUAL NA NOVA JANELA >>>
-            ThemeManager.applyThemeToScene(scene);
-
-            stage.setTitle("Buscar Livro Online");
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(listaLivros.getScene()
-                                       .getWindow());
+            WindowUtil.configureModalStage(owner, stage, "Buscar Livro Online", scene);
             stage.showAndWait();
 
         } catch (Exception e) {
@@ -463,19 +380,18 @@ public class TelaPrincipalController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/biblioteca/view/TelaConfiguracoes.fxml"));
             Parent root = loader.load();
 
-            Stage configStage = new Stage();
+            // Declaração e uso consistente da variável 'stage'
+            Stage stage = new Stage();
             Scene scene = new Scene(root);
+            Window owner = listaLivros.getScene()
+                                      .getWindow();
 
-            ThemeManager.applyThemeToScene(scene);
+            WindowUtil.configureModalStage(owner, stage, "Configurações", scene);
 
-            TelaConfiguracoesController configController = loader.getController(); // Apenas pegue o controller
+            // A linha abaixo não é mais necessária pois o WindowUtil não precisa da referência do controller
+            // TelaConfiguracoesController configController = loader.getController();
 
-            configStage.setTitle("Configurações");
-            configStage.setScene(scene);
-            configStage.initModality(Modality.WINDOW_MODAL);
-            configStage.initOwner(listaLivros.getScene()
-                                             .getWindow());
-            configStage.showAndWait();
+            stage.showAndWait();
 
         } catch (Exception e) {
             e.printStackTrace();

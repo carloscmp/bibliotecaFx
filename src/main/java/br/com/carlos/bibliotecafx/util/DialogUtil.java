@@ -1,11 +1,19 @@
 package br.com.carlos.bibliotecafx.util;
 
+import br.com.carlos.bibliotecafx.App;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.TextInputDialog;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.util.Optional;
 
+/**
+ * Classe utilitária para criar e exibir diálogos padronizados,
+ * com tema e ícone da aplicação.
+ */
 public final class DialogUtil {
 
     private DialogUtil() {
@@ -20,7 +28,7 @@ public final class DialogUtil {
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-        styleAndShowAndWait(alert);
+        configureAndShowAndWait(alert);
     }
 
     public static void showSuccess(String title, String content) {
@@ -28,7 +36,7 @@ public final class DialogUtil {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
-        styleAndShowAndWait(alert);
+        configureAndShowAndWait(alert);
     }
 
     public static void showWarning(String title, String content) {
@@ -40,7 +48,7 @@ public final class DialogUtil {
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-        styleAndShowAndWait(alert);
+        configureAndShowAndWait(alert);
     }
 
     public static Optional<ButtonType> showConfirmation(String title, String header, String content) {
@@ -48,12 +56,47 @@ public final class DialogUtil {
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-        ThemeManager.styleDialog(alert); // Estiliza
-        return alert.showAndWait(); // Espera e retorna a resposta
+
+        configureDialog(alert);
+
+        return alert.showAndWait();
     }
 
-    private static void styleAndShowAndWait(Dialog<?> dialog) {
-        ThemeManager.styleDialog(dialog);
+    /**
+     * <<< NOVO MÉTODO PARA DIÁLOGOS DE ENTRADA DE TEXTO >>>
+     * Cria, configura e exibe um diálogo para o usuário digitar uma informação.
+     */
+    public static Optional<String> showTextInput(String title, String header, String content) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle(title);
+        dialog.setHeaderText(header);
+        dialog.setContentText(content);
+
+        configureDialog(dialog);
+
+        return dialog.showAndWait();
+    }
+
+    private static void configureAndShowAndWait(Dialog<?> dialog) {
+        configureDialog(dialog);
         dialog.showAndWait();
+    }
+
+    /**
+     * Aplica todas as configurações padrão (tema e ícone) a qualquer diálogo.
+     */
+    private static void configureDialog(Dialog<?> dialog) {
+        ThemeManager.styleDialog(dialog);
+
+        Window window = dialog.getDialogPane()
+                              .getScene()
+                              .getWindow();
+        if (window instanceof Stage) {
+            Stage stage = (Stage) window;
+            if (App.APP_ICON != null) {
+                stage.getIcons()
+                     .add(App.APP_ICON);
+            }
+        }
     }
 }

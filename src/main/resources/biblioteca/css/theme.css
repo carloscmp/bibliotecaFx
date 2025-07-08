@@ -1,0 +1,125 @@
+/* =============================================================== */
+/* ARQUIVO DE TEMA ÚNICO PARA A APLICAÇÃO BIBLIOTECAFX             */
+/* =============================================================== */
+
+/* --- ESTILOS PADRÃO (TEMA CLARO) --- */
+
+.root {
+    -fx-base: #f0f0f0;
+    -fx-background: #f4f6f8;
+    -fx-control-inner-background: white;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.tool-bar {
+    -fx-padding: 10;
+    -fx-background-color: white;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.main-hbox {
+    -fx-padding: 20;
+}
+
+.details-pane {
+    -fx-padding: 20;
+    -fx-background-radius: 8;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2);
+}
+
+#labelTitulo {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.details-pane .grid-pane .label {
+    -fx-text-fill: #555555;
+}
+
+.details-pane .grid-pane #labelAutor,
+.details-pane .grid-pane #labelAno,
+.details-pane .grid-pane #labelPaginas,
+.details-pane .grid-pane #labelStatusLeitura {
+    -fx-text-fill: #333333;
+}
+
+/* --- ESTILOS DO TEMA ESCURO (Aplicados quando a classe .dark está presente) --- */
+
+.dark {
+    -fx-base: #3a3a3a;
+    -fx-background: #2b2b2b;
+    -fx-control-inner-background: #454545;
+}
+
+.dark .label, .dark .check-box .text {
+    -fx-text-fill: #cccccc;
+}
+
+.dark .tool-bar {
+    -fx-background-color: #353535;
+    -fx-border-color: #2b2b2b;
+}
+
+.dark .context-menu {
+    -fx-background-color: #454545;
+}
+
+.dark .menu-item .label {
+    -fx-text-fill: #e0e0e0;
+}
+
+.dark .menu-item:focused {
+    -fx-background-color: #0078d7;
+}
+
+.dark .menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+.dark .text-field {
+    -fx-prompt-text-fill: #999999;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #555555;
+}
+
+.dark .list-view {
+    -fx-background-color: #3c3c3c;
+    -fx-border-color: #555555;
+}
+
+.dark .list-view .list-cell:hover {
+    -fx-background-color: #505050;
+}
+
+.dark .list-view .list-cell:filled:selected .label,
+.dark .list-view .list-cell:filled:selected:focused .label {
+    -fx-text-fill: white;
+}
+
+.dark .details-pane {
+    -fx-background-color: #353535;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 15, 0, 0, 4);
+}
+
+.dark #labelTitulo {
+    -fx-text-fill: #ffffff;
+}
+
+.dark .details-pane .grid-pane .label {
+    -fx-text-fill: #bbbbbb;
+}
+
+.dark .details-pane .grid-pane #labelAutor,
+.dark .details-pane .grid-pane #labelAno,
+.dark .details-pane .grid-pane #labelPaginas,
+.dark .details-pane .grid-pane #labelStatusLeitura {
+    -fx-text-fill: #dddddd;
+}
+
+.dark .scroll-pane, .dark .scroll-pane .viewport {
+    -fx-background-color: #454545;
+    -fx-border-color: #555555;
+}

@@ -8,60 +8,73 @@ import javafx.stage.Window;
 import java.util.prefs.Preferences;
 
 public class ThemeManager {
-    private static final String BASE_CSS_PATH = "/biblioteca/css/base.css";
-    private static final String DARK_THEME_PATH = "/biblioteca/css/dark-theme.css";
+    private static final String THEME_CSS_PATH = "/biblioteca/css/theme.css";
+    private static final String DARK_STYLE_CLASS = "dark";
     private static final String PREF_KEY = "theme";
 
+    /**
+     * Aplica o tema correto em uma cena, adicionando a folha de estilo base
+     * e a classe do tema escuro, se necessário.
+     */
     public static void applyThemeToScene(Scene scene) {
-        String baseCss = App.class.getResource(BASE_CSS_PATH)
-                                  .toExternalForm();
+        String themeCss = App.class.getResource(THEME_CSS_PATH)
+                                   .toExternalForm();
         if (!scene.getStylesheets()
-                  .contains(baseCss)) {
+                  .contains(themeCss)) {
             scene.getStylesheets()
-                 .add(baseCss);
+                 .add(themeCss);
         }
-        String theme = getThemePreference();
-        String darkThemeCss = App.class.getResource(DARK_THEME_PATH)
-                                       .toExternalForm();
-        scene.getStylesheets()
-             .remove(darkThemeCss);
-        if ("Escuro".equals(theme)) {
-            scene.getStylesheets()
-                 .add(darkThemeCss);
+        updateThemeClass(scene);
+    }
+
+    /**
+     * Aplica o tema em um diálogo.
+     */
+    public static void styleDialog(Dialog<?> dialog) {
+        var pane = dialog.getDialogPane();
+        pane.getStylesheets()
+            .clear();
+        String themeCss = App.class.getResource(THEME_CSS_PATH)
+                                   .toExternalForm();
+        pane.getStylesheets()
+            .add(themeCss);
+
+        if ("Escuro".equals(getThemePreference())) {
+            pane.getStyleClass()
+                .add(DARK_STYLE_CLASS);
         }
     }
 
     /**
-     * <<< NOVO MÉTODO PARA ESTILIZAR DIÁLOGOS E ALERTAS >>>
-     * Aplica os arquivos CSS corretos diretamente no painel de um diálogo.
-     *
-     * @param dialog O diálogo (ou alerta) a ser estilizado.
+     * Define um novo tema, salva a preferência e atualiza todas as janelas abertas.
      */
-    public static void styleDialog(Dialog<?> dialog) {
-        // Pega o painel de conteúdo do diálogo
-        var pane = dialog.getDialogPane();
-        // Limpa quaisquer estilos antigos para garantir
-        pane.getStylesheets()
-            .clear();
-        // Adiciona nosso CSS base e, condicionalmente, o tema escuro
-        pane.getStylesheets()
-            .add(App.class.getResource(BASE_CSS_PATH)
-                          .toExternalForm());
-
-        String theme = getThemePreference();
-        if ("Escuro".equals(theme)) {
-            pane.getStylesheets()
-                .add(App.class.getResource(DARK_THEME_PATH)
-                              .toExternalForm());
-        }
-    }
-
     public static void setAndApplyGlobalTheme(String themeName) {
         saveThemePreference(themeName);
         for (Window window : Window.getWindows()) {
             if (window.isShowing()) {
-                applyThemeToScene(window.getScene());
+                updateThemeClass(window.getScene());
             }
+        }
+    }
+
+    /**
+     * Adiciona ou remove a classe .dark do nó raiz da cena,
+     * com base na preferência salva.
+     */
+    private static void updateThemeClass(Scene scene) {
+        String theme = getThemePreference();
+        if ("Escuro".equals(theme)) {
+            if (!scene.getRoot()
+                      .getStyleClass()
+                      .contains(DARK_STYLE_CLASS)) {
+                scene.getRoot()
+                     .getStyleClass()
+                     .add(DARK_STYLE_CLASS);
+            }
+        } else {
+            scene.getRoot()
+                 .getStyleClass()
+                 .remove(DARK_STYLE_CLASS);
         }
     }
 
