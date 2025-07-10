@@ -1,4 +1,4 @@
-package br.com.carlos.bibliotecafx.util;
+package br.com.carlos.bibliotecafx.persistence;
 
 import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import com.fasterxml.jackson.core.type.TypeReference;

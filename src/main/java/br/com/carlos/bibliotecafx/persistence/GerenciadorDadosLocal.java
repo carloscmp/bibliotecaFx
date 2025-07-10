@@ -1,4 +1,4 @@
-package br.com.carlos.bibliotecafx.util;
+package br.com.carlos.bibliotecafx.persistence;
 
 import br.com.carlos.bibliotecafx.model.LivroFx;
 import com.fasterxml.jackson.core.type.TypeReference;

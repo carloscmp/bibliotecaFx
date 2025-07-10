@@ -2,9 +2,9 @@ package br.com.carlos.bibliotecafx.controller;
 
 import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import br.com.carlos.bibliotecafx.model.LivroFx;
-import br.com.carlos.bibliotecafx.util.DialogUtil;
-import br.com.carlos.bibliotecafx.util.FilaSincronizacao;
-import br.com.carlos.bibliotecafx.util.GerenciadorDadosLocal;
+import br.com.carlos.bibliotecafx.persistence.FilaSincronizacao;
+import br.com.carlos.bibliotecafx.persistence.GerenciadorDadosLocal;
+import br.com.carlos.bibliotecafx.ui.DialogUtil;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

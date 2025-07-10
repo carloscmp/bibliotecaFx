@@ -1,6 +1,6 @@
 package br.com.carlos.bibliotecafx.controller;
 
-import br.com.carlos.bibliotecafx.util.ThemeManager;
+import br.com.carlos.bibliotecafx.ui.ThemeManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 // O import do Stage não é mais necessário aqui

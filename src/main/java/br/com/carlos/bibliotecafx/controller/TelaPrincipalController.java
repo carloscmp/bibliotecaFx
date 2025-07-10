@@ -1,9 +1,14 @@
 package br.com.carlos.bibliotecafx.controller;
 
+import br.com.carlos.bibliotecafx.config.ConfigUtil;
+import br.com.carlos.bibliotecafx.http.HttpUtil;
 import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import br.com.carlos.bibliotecafx.model.LivroFx;
+import br.com.carlos.bibliotecafx.persistence.FilaSincronizacao;
+import br.com.carlos.bibliotecafx.persistence.GerenciadorDadosLocal;
 import br.com.carlos.bibliotecafx.service.ServicoSincronizacao;
-import br.com.carlos.bibliotecafx.util.*;
+import br.com.carlos.bibliotecafx.ui.DialogUtil;
+import br.com.carlos.bibliotecafx.ui.WindowUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
@@ -219,7 +224,7 @@ public class TelaPrincipalController {
             lblSinopse.setText(livro.getSinopse());
 
             if (livro.isLido()) {
-                labelStatusLeitura.setText("✅ Lido");
+                labelStatusLeitura.setText("📗 Lido");
                 labelStatusLeitura.setStyle("-fx-text-fill: #28a745; -fx-font-weight: bold;");
             } else {
                 labelStatusLeitura.setText("📕 Não Lido");

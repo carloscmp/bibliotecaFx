@@ -1,6 +1,6 @@
-package br.com.carlos.bibliotecafx.util;
+package br.com.carlos.bibliotecafx.ui;
 
-import br.com.carlos.bibliotecafx.App;
+import br.com.carlos.bibliotecafx.main.App;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;

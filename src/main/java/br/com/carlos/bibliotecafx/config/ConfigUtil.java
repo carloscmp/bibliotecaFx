@@ -1,4 +1,4 @@
-package br.com.carlos.bibliotecafx.util;
+package br.com.carlos.bibliotecafx.config;
 
 import java.io.IOException;
 import java.io.InputStream;

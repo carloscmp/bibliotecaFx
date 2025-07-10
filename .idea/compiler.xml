@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="BibliotecaFx" options="--add-exports javafx.graphics/com.sun.javafx.application=br.com.carlos.bibliotecafx" />
+      <module name="BibliotecaFx" options="--add-exports=javafx.graphics/com.sun.javafx.application=br.com.carlos.bibliotecafx" />
     </option>
   </component>
 </project>

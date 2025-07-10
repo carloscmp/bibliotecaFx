@@ -1,4 +1,4 @@
-package br.com.carlos.bibliotecafx;
+package br.com.carlos.bibliotecafx.main;
 
 import javafx.application.Preloader;
 import javafx.fxml.FXMLLoader;

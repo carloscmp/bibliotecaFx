@@ -1,4 +1,4 @@
-package br.com.carlos.bibliotecafx.util;
+package br.com.carlos.bibliotecafx.http;
 
 import java.io.IOException;
 import java.net.URI;

@@ -1,11 +1,11 @@
 package br.com.carlos.bibliotecafx.service;
 
+import br.com.carlos.bibliotecafx.config.ConfigUtil;
+import br.com.carlos.bibliotecafx.http.HttpUtil;
 import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import br.com.carlos.bibliotecafx.model.LivroFx;
-import br.com.carlos.bibliotecafx.util.ConfigUtil;
-import br.com.carlos.bibliotecafx.util.FilaSincronizacao;
-import br.com.carlos.bibliotecafx.util.GerenciadorDadosLocal;
-import br.com.carlos.bibliotecafx.util.HttpUtil;
+import br.com.carlos.bibliotecafx.persistence.FilaSincronizacao;
+import br.com.carlos.bibliotecafx.persistence.GerenciadorDadosLocal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
-package br.com.carlos.bibliotecafx.util;
+package br.com.carlos.bibliotecafx.ui;
 
-import br.com.carlos.bibliotecafx.App;
+import br.com.carlos.bibliotecafx.main.App;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;

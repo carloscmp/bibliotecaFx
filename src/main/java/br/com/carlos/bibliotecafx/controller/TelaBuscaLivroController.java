@@ -1,10 +1,10 @@
 package br.com.carlos.bibliotecafx.controller;
 
 import br.com.carlos.bibliotecafx.DTO.LivroDTO;
+import br.com.carlos.bibliotecafx.api.googlebooks.LivroAPI;
 import br.com.carlos.bibliotecafx.model.LivroFx;
-import br.com.carlos.bibliotecafx.util.DialogUtil;
-import br.com.carlos.bibliotecafx.util.LivroAPI;
-import br.com.carlos.bibliotecafx.util.ThemeManager;
+import br.com.carlos.bibliotecafx.ui.DialogUtil;
+import br.com.carlos.bibliotecafx.ui.ThemeManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;

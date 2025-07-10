@@ -1,7 +1,7 @@
-package br.com.carlos.bibliotecafx;
+package br.com.carlos.bibliotecafx.main;
 
 import br.com.carlos.bibliotecafx.controller.TelaPrincipalController;
-import br.com.carlos.bibliotecafx.util.ThemeManager;
+import br.com.carlos.bibliotecafx.ui.ThemeManager;
 import javafx.application.Application;
 import javafx.application.Preloader;
 import javafx.fxml.FXMLLoader;
