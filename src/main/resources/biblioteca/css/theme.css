@@ -46,8 +46,6 @@
     -fx-text-fill: #333333;
 }
 
-/* --- ESTILOS DO TEMA ESCURO (Aplicados quando a classe .dark está presente) --- */
-
 .dark {
     -fx-base: #3a3a3a;
     -fx-background: #2b2b2b;

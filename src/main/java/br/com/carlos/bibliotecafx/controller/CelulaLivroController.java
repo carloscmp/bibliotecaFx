@@ -40,9 +40,9 @@ public class CelulaLivroController {
         }
         if (livro.isEmprestado()) {
             lblStatusEmprestimo.setText("➡️ Emprestado");
-            lblStatusEmprestimo.setStyle("-fx-text-fill: #e67e22;"); // Laranja
+            lblStatusEmprestimo.setStyle("-fx-text-fill: #e67e22;");
         } else {
-            lblStatusEmprestimo.setText(""); // Fica invisível se não estiver emprestado
+            lblStatusEmprestimo.setText("");
         }
     }
 }

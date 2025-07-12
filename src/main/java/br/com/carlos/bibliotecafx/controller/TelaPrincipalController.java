@@ -288,7 +288,6 @@ public class TelaPrincipalController {
                 "Nome:"
         );
 
-        // A lógica para processar o resultado continua a mesma
         resultado.ifPresent(nome -> {
             if (!nome.trim()
                      .isEmpty()) {
@@ -338,7 +337,6 @@ public class TelaPrincipalController {
             controller.inicializarDados(livro, todosOsLivros);
             controller.setOnEdicaoConcluidaCallback(this::carregarLivrosLocalmente);
 
-            // Declaração e uso consistente da variável 'stage'
             Stage stage = new Stage();
             Scene scene = new Scene(root);
             Window owner = listaLivros.getScene()
@@ -364,7 +362,6 @@ public class TelaPrincipalController {
             buscaController.setOnBuscaConcluidaCallback(this::carregarLivrosLocalmente);
             buscaController.setListaPrincipal(this.todosOsLivros);
 
-            // Declaração e uso consistente da variável 'stage'
             Stage stage = new Stage();
             Scene scene = new Scene(root);
             Window owner = listaLivros.getScene()
@@ -385,16 +382,12 @@ public class TelaPrincipalController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/biblioteca/view/TelaConfiguracoes.fxml"));
             Parent root = loader.load();
 
-            // Declaração e uso consistente da variável 'stage'
             Stage stage = new Stage();
             Scene scene = new Scene(root);
             Window owner = listaLivros.getScene()
                                       .getWindow();
 
             WindowUtil.configureModalStage(owner, stage, "Configurações", scene);
-
-            // A linha abaixo não é mais necessária pois o WindowUtil não precisa da referência do controller
-            // TelaConfiguracoesController configController = loader.getController();
 
             stage.showAndWait();
 

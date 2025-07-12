@@ -106,11 +106,6 @@
                     </children>
                 </HBox>
 
-                <!-- ========================================================================= -->
-                <!-- CORREÇÃO AQUI: O HBox aninhado foi removido e os componentes foram        -->
-                <!-- colocados em um único HBox para alinhamento correto.                      -->
-                <!-- Os estilos inline dos botões também foram removidos.                      -->
-                <!-- ========================================================================= -->
                 <HBox alignment="CENTER_RIGHT"
                       spacing="15.0">
                     <children>

@@ -60,7 +60,7 @@ public class TelaBuscaLivroController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         progressIndicator.setVisible(false);
-        btnAdicionar.setDisable(true); // Botão começa desabilitado
+        btnAdicionar.setDisable(true);
         colTitulo.setCellValueFactory(new PropertyValueFactory<>("titulo"));
         colAutor.setCellValueFactory(new PropertyValueFactory<>("autor"));
 
@@ -116,10 +116,6 @@ public class TelaBuscaLivroController implements Initializable {
         new Thread(buscarTask).start();
     }
 
-    /**
-     * Lógica refatorada: Não salva mais na rede.
-     * Pega os dados do livro online, baixa a capa e abre a tela de edição pré-preenchida.
-     */
     @FXML
     public void adicionarLivro() {
         LivroDTO selecionado = tabelaBuscaLivro.getSelectionModel()
@@ -129,7 +125,6 @@ public class TelaBuscaLivroController implements Initializable {
             return;
         }
 
-        // Cria uma Task para baixar a imagem da capa em segundo plano
         Task<byte[]> downloadCapaTask = new Task<>() {
             @Override
             protected byte[] call() throws Exception {
@@ -156,7 +151,6 @@ public class TelaBuscaLivroController implements Initializable {
             progressIndicator.setVisible(false);
             byte[] capaBytes = downloadCapaTask.getValue();
 
-            // Cria um novo objeto LivroFx com os dados encontrados
             LivroFx novoLivro = new LivroFx();
             novoLivro.setTitulo(selecionado.getTitulo());
             novoLivro.setAutor(selecionado.getAutor());
@@ -164,9 +158,6 @@ public class TelaBuscaLivroController implements Initializable {
             novoLivro.setAno(selecionado.getAno());
             novoLivro.setNumeroPaginas(selecionado.getNumeroPaginas());
             novoLivro.setCapa(capaBytes);
-            // O livro começa como não lido e não emprestado por padrão
-
-            // Abre a tela de edição com os dados pré-preenchidos
             abrirTelaDeEdicao(novoLivro);
         });
 
@@ -193,7 +184,6 @@ public class TelaBuscaLivroController implements Initializable {
             stage.setScene(scene);
             stage.showAndWait();
 
-            // Fecha a tela de busca após a edição/cadastro ser concluída
             Stage stageBusca = (Stage) btnAdicionar.getScene()
                                                    .getWindow();
             stageBusca.close();
@@ -207,7 +197,7 @@ public class TelaBuscaLivroController implements Initializable {
     private void carregarCapaAutomaticamente(String url) {
         try {
             if (url != null && !url.isBlank()) {
-                imageCapa.setImage(new Image(url, true)); // true para carregar em background
+                imageCapa.setImage(new Image(url, true));
             } else {
                 imageCapa.setImage(null);
             }
@@ -215,6 +205,4 @@ public class TelaBuscaLivroController implements Initializable {
             imageCapa.setImage(null);
         }
     }
-
-    // O método carregarCapaManual() foi removido pois a tela de edição já possui essa funcionalidade.
 }

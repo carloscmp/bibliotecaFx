@@ -2,12 +2,11 @@ package br.com.carlos.bibliotecafx.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-// Anotação para não incluir campos nulos no JSON, deixando o arquivo mais limpo
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AcaoPendente {
-    private String tipo; // "ADD", "UPDATE", "DELETE"
-    private Long livroId; // Usado para UPDATE e DELETE
-    private LivroFx payload; // Usado para ADD e UPDATE (o livro completo)
+    private String tipo;
+    private Long livroId;
+    private LivroFx payload;
 
     public AcaoPendente() {
     }

@@ -157,7 +157,7 @@ public class LivroFx {
         this.lido.set(lido);
     }
 
-    @JsonIgnore // Importante para não confundir o Jackson
+    @JsonIgnore
     public BooleanProperty lidoProperty() {
         return lido;
     }

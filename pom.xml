@@ -27,17 +27,11 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-
-        <!-- ======================================================= -->
-        <!-- CORREÇÃO 1: Adicionando a dependência que estava faltando -->
-        <!-- ======================================================= -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-swing</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <!-- ======================================================= -->
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -58,9 +52,6 @@
                 <version>3.11.0</version>
                 <configuration>
                     <release>17</release>
-                    <!-- ======================================================= -->
-                    <!-- CORREÇÃO 2: Adicionando permissão para o COMPILADOR     -->
-                    <!-- ======================================================= -->
                     <compilerArgs>
                         <arg>--add-exports=javafx.graphics/com.sun.javafx.application=br.com.carlos.bibliotecafx</arg>
                     </compilerArgs>
@@ -72,12 +63,8 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <!-- Aponta para o Launcher para usar o Preloader -->
                     <mainClass>br.com.carlos.bibliotecafx.main.Launcher</mainClass>
                     <options>
-                        <!-- ======================================================= -->
-                        <!-- CORREÇÃO 3: Adicionando permissão para a EXECUÇÃO       -->
-                        <!-- ======================================================= -->
                         <option>--add-exports=javafx.graphics/com.sun.javafx.application=br.com.carlos.bibliotecafx
                         </option>
                     </options>

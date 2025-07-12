@@ -27,14 +27,12 @@
     </top>
 
     <center>
-        <!-- Usamos um StackPane para colocar o indicador de progresso sobre a tabela -->
         <StackPane>
             <children>
                 <SplitPane dividerPositions="0.65"
                            prefHeight="160.0"
                            prefWidth="200.0">
                     <items>
-                        <!-- Tabela de Resultados -->
                         <TableView fx:id="tabelaBuscaLivro"
                                    prefWidth="600.0">
                             <columns>
@@ -50,7 +48,6 @@
                             </columnResizePolicy>
                         </TableView>
 
-                        <!-- Painel de Visualização da Capa -->
                         <VBox alignment="TOP_CENTER"
                               spacing="10"
                               style="-fx-padding: 10;">

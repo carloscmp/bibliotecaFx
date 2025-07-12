@@ -49,12 +49,7 @@ public class TelaEdicaoLivroController {
     private byte[] novaCapaBytes;
     private Runnable onEdicaoConcluidaCallback;
 
-    /**
-     * Método de inicialização modificado. Agora recebe também a lista principal de livros.
-     *
-     * @param livro         O livro a ser editado, ou um novo livro vazio.
-     * @param todosOsLivros A lista principal da aplicação.
-     */
+
     public void inicializarDados(LivroFx livro, ObservableList<LivroFx> todosOsLivros) {
         this.livroAtual = livro;
         this.listaPrincipalDeLivros = todosOsLivros;
@@ -100,10 +95,6 @@ public class TelaEdicaoLivroController {
         }
     }
 
-    /**
-     * Lógica de salvamento refatorada para o modo "Offline-First".
-     * A ação agora é instantânea e local.
-     */
     @FXML
     private void salvarAlteracoes() {
         if (!validarCampos()) {
@@ -135,19 +126,14 @@ public class TelaEdicaoLivroController {
             acao = new AcaoPendente("ADD", null, livroAtual);
             System.out.println("Novo livro adicionado localmente com ID temporário: " + livroAtual.getId());
         } else {
-            // Se é uma edição, a lista principal já é atualizada automaticamente
-            // pois 'livroAtual' é uma referência a um objeto que já está na lista.
             acao = new AcaoPendente("UPDATE", livroAtual.getId(), livroAtual);
             System.out.println("Livro ID " + livroAtual.getId() + " atualizado localmente.");
         }
 
-        // Adiciona a tarefa na fila de sincronização
         FilaSincronizacao.adicionarOuAtualizarAcao(acao);
 
-        // Salva a lista inteira (com o novo item ou com o item atualizado) no arquivo local
         GerenciadorDadosLocal.salvarBiblioteca(listaPrincipalDeLivros);
 
-        // Chama o callback para que a tela principal possa se recarregar do arquivo local
         if (onEdicaoConcluidaCallback != null) {
             onEdicaoConcluidaCallback.run();
         }

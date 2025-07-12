@@ -44,7 +44,7 @@ public final class HttpUtil {
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IOException("Falha na requisição HTTP POST: Status code " + response.statusCode() + " | Body: " + response.body());
         }
-        return response.body(); // Retorna o JSON da resposta
+        return response.body();
     }
 
     public static String get(String url) throws IOException, InterruptedException {
