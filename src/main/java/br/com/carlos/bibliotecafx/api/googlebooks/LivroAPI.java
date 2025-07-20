@@ -29,7 +29,6 @@ public class LivroAPI {
         String encodedTitulo = URLEncoder.encode(titulo, StandardCharsets.UTF_8);
         String urlBuscaSegura = String.format("%s/busca-externa?titulo=%s", urlBaseBackend, encodedTitulo);
 
-        System.out.println("!!! DEBUG: URL FINAL SENDO CHAMADA PELO FRONTEND: " + urlBuscaSegura);
 
         String respostaJson = HttpUtil.get(urlBuscaSegura);
 

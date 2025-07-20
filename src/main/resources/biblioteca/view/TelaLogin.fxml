@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.text.Font?>
+<HBox alignment="CENTER"
+      xmlns="http://javafx.com/javafx/17.0.2"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="br.com.carlos.bibliotecafx.controller.TelaLoginController">
+    <children>
+        <!-- PAINEL ESQUERDO (VISUAL) -->
+        <VBox alignment="CENTER_LEFT"
+              prefHeight="550.0"
+              prefWidth="350.0"
+              spacing="15.0"
+              styleClass="login-sidebar">
+            <padding>
+                <Insets left="40.0"
+                        right="40.0"/>
+            </padding>
+            <children>
+                <ImageView fitHeight="80.0"
+                           fitWidth="80.0"
+                           pickOnBounds="true"
+                           preserveRatio="true">
+                    <image>
+                        <Image url="@/biblioteca/images/library_icon.png"/>
+                    </image>
+                </ImageView>
+                <Label styleClass="sidebar-header"
+                       text="Bem-vindo à sua Biblioteca Pessoal"
+                       wrapText="true"/>
+                <Label styleClass="sidebar-text"
+                       text="Organize, controle e redescubra os seus livros de uma forma simples e moderna."
+                       wrapText="true"/>
+            </children>
+        </VBox>
+
+        <!-- PAINEL DIREITO (FORMULÁRIO) -->
+        <StackPane prefHeight="550.0"
+                   prefWidth="450.0">
+            <children>
+                <VBox alignment="CENTER"
+                      maxWidth="320.0"
+                      spacing="20.0"
+                      styleClass="login-form-pane">
+                    <children>
+                        <Label text="Entrar na Conta">
+                            <font>
+                                <Font name="System Bold"
+                                      size="24.0"/>
+                            </font>
+                        </Label>
+                        <!-- Campo de Utilizador com Ícone -->
+                        <VBox spacing="5.0">
+                            <children>
+                                <Label text="Nome de Utilizador"/>
+                                <StackPane>
+                                    <children>
+                                        <TextField fx:id="txtUsername"
+                                                   promptText="Digite seu utilizador"
+                                                   styleClass="input-field"/>
+                                        <SVGPath content="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                                                 styleClass="input-icon"/>
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </VBox>
+                        <!-- Campo de Senha com Ícone -->
+                        <VBox spacing="5.0">
+                            <children>
+                                <Label text="Senha"/>
+                                <StackPane>
+                                    <children>
+                                        <PasswordField fx:id="txtPassword"
+                                                       promptText="Digite sua senha"
+                                                       styleClass="input-field"/>
+                                        <SVGPath content="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z"
+                                                 styleClass="input-icon"/>
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </VBox>
+                        <Button fx:id="btnEntrar"
+                                defaultButton="true"
+                                maxWidth="1.7976931348623157E308"
+                                styleClass="login-button"
+                                text="Entrar"/>
+                        <Hyperlink onAction="#abrirTelaRegistro"
+                                   text="Não tem uma conta? Registe-se"/>
+                    </children>
+                </VBox>
+                <ProgressIndicator fx:id="progressIndicator"
+                                   prefHeight="80.0"
+                                   prefWidth="80.0"
+                                   visible="false"/>
+            </children>
+        </StackPane>
+    </children>
+</HBox>

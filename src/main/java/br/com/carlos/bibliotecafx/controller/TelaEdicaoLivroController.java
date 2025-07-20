@@ -21,6 +21,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+/**
+ * Controller para a janela de edição e cadastro de livros.
+ * Lida com a entrada de dados do utilizador e guarda as alterações localmente.
+ */
 public class TelaEdicaoLivroController {
 
     @FXML
@@ -50,10 +54,12 @@ public class TelaEdicaoLivroController {
     private Runnable onEdicaoConcluidaCallback;
 
     /**
-     * Método de inicialização modificado. Agora recebe também a lista principal de livros.
+     * Inicializa a tela com os dados de um livro.
+     * Se um livro novo e vazio é passado, a tela funciona em modo de "criação".
+     * Se um livro existente é passado, funciona em modo de "edição".
      *
-     * @param livro         O livro a ser editado, ou um novo livro vazio.
-     * @param todosOsLivros A lista principal da aplicação.
+     * @param livro         O livro a ser editado, ou um novo objeto LivroFx para cadastro.
+     * @param todosOsLivros A referência à lista de livros principal da aplicação.
      */
     public void inicializarDados(LivroFx livro, ObservableList<LivroFx> todosOsLivros) {
         this.livroAtual = livro;
@@ -74,10 +80,18 @@ public class TelaEdicaoLivroController {
         }
     }
 
+    /**
+     * Define uma ação a ser executada quando a edição for concluída com sucesso.
+     *
+     * @param callback A ação (geralmente para recarregar a lista principal).
+     */
     public void setOnEdicaoConcluidaCallback(Runnable callback) {
         this.onEdicaoConcluidaCallback = callback;
     }
 
+    /**
+     * Abre um seletor de ficheiros para o utilizador escolher uma nova imagem de capa.
+     */
     @FXML
     private void carregarNovaCapa() {
         FileChooser fileChooser = new FileChooser();
@@ -94,7 +108,7 @@ public class TelaEdicaoLivroController {
                 this.novaCapaBytes = Files.readAllBytes(arquivoSelecionado.toPath());
                 imgCapa.setImage(new Image(new ByteArrayInputStream(this.novaCapaBytes)));
             } catch (IOException e) {
-                DialogUtil.showError("Erro de Arquivo", "Não foi possível ler a imagem selecionada.");
+                DialogUtil.showError("Erro de Ficheiro", "Não foi possível ler a imagem selecionada.");
                 e.printStackTrace();
             }
         }
@@ -102,7 +116,7 @@ public class TelaEdicaoLivroController {
 
     /**
      * Lógica de salvamento refatorada para o modo "Offline-First".
-     * A ação agora é instantânea e local.
+     * A ação agora é instantânea, guardando localmente e adicionando à fila de sincronização.
      */
     @FXML
     private void salvarAlteracoes() {
@@ -111,6 +125,30 @@ public class TelaEdicaoLivroController {
         }
 
         boolean isNewBook = (livroAtual.getId() == null || livroAtual.getId() == 0);
+
+        // <<< CORREÇÃO: VERIFICAÇÃO DE DUPLICADOS ANTES DE SALVAR >>>
+        if (isNewBook) {
+            String novoTitulo = txtTitulo.getText()
+                                         .trim();
+            String novoAutor = txtAutor.getText()
+                                       .trim();
+
+            // Usa um stream para verificar se algum livro na lista principal já tem o mesmo título e autor (ignorando maiúsculas/minúsculas).
+            boolean isDuplicate = listaPrincipalDeLivros.stream()
+                                                        .anyMatch(livro ->
+                                                                livro.getTitulo()
+                                                                     .trim()
+                                                                     .equalsIgnoreCase(novoTitulo) &&
+                                                                        livro.getAutor()
+                                                                             .trim()
+                                                                             .equalsIgnoreCase(novoAutor)
+                                                        );
+
+            if (isDuplicate) {
+                DialogUtil.showWarning("Livro Duplicado", "Um livro com o mesmo título e autor já existe na sua biblioteca.");
+                return; // Interrompe a operação de salvamento
+            }
+        }
 
         // Atualiza o objeto com os dados dos campos do formulário
         livroAtual.setTitulo(txtTitulo.getText());
@@ -135,34 +173,42 @@ public class TelaEdicaoLivroController {
             acao = new AcaoPendente("ADD", null, livroAtual);
             System.out.println("Novo livro adicionado localmente com ID temporário: " + livroAtual.getId());
         } else {
-            // Se é uma edição, a lista principal já é atualizada automaticamente
-            // pois 'livroAtual' é uma referência a um objeto que já está na lista.
             acao = new AcaoPendente("UPDATE", livroAtual.getId(), livroAtual);
             System.out.println("Livro ID " + livroAtual.getId() + " atualizado localmente.");
         }
 
-        // Adiciona a tarefa na fila de sincronização
         FilaSincronizacao.adicionarOuAtualizarAcao(acao);
 
-        // Salva a lista inteira (com o novo item ou com o item atualizado) no arquivo local
         GerenciadorDadosLocal.salvarBiblioteca(listaPrincipalDeLivros);
 
-        // Chama o callback para que a tela principal possa se recarregar do arquivo local
         if (onEdicaoConcluidaCallback != null) {
             onEdicaoConcluidaCallback.run();
         }
 
-        DialogUtil.showSuccess("Salvo!", "As alterações foram salvas localmente e serão sincronizadas em breve.");
+        DialogUtil.showSuccess("Salvo!", "As alterações foram guardadas localmente e serão sincronizadas em breve.");
         cancelarEdicao(); // Fecha a janela
     }
 
+    /**
+     * Valida os campos obrigatórios do formulário.
+     *
+     * @return true se os campos forem válidos, false caso contrário.
+     */
     private boolean validarCampos() {
         String titulo = txtTitulo.getText();
+        String autor = txtAutor.getText(); // Adicionado para validação
+
         if (titulo == null || titulo.trim()
                                     .isEmpty()) {
             DialogUtil.showError("Erro de Validação", "O campo 'Título' é obrigatório.");
             return false;
         }
+        if (autor == null || autor.trim()
+                                  .isEmpty()) { // Adicionada validação para o autor
+            DialogUtil.showError("Erro de Validação", "O campo 'Autor' é obrigatório.");
+            return false;
+        }
+
         try {
             if (!txtAno.getText()
                        .trim()
@@ -184,6 +230,9 @@ public class TelaEdicaoLivroController {
         return true;
     }
 
+    /**
+     * Fecha a janela de edição/cadastro.
+     */
     @FXML
     private void cancelarEdicao() {
         Stage stage = (Stage) btnCancelar.getScene()

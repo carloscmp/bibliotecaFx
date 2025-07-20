@@ -14,12 +14,25 @@
             <MenuButton text="➕ Adicionar Livro">
                 <items>
                     <MenuItem onAction="#abrirTelaBuscaOnline"
+                              styleClass="menu-item-largo"
                               text="Buscar Online (Google Books)"/>
-                    <MenuItem onAction="#abrirTelaCadastroManual"
-                              text="Cadastro Manual"/>
                     <SeparatorMenuItem/>
+                    <MenuItem onAction="#abrirTelaCadastroManual"
+                              styleClass="menu-item-largo"
+                              text="Cadastro Manual"/>
+                </items>
+            </MenuButton>
+            <MenuButton mnemonicParsing="false"
+                        text="⚙ Configurações">
+                <items>
                     <MenuItem onAction="#abrirConfiguracoes"
-                              text="⚙️ Configurações"/>
+                              styleClass="menu-item-largo"
+                              text="Temas"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem mnemonicParsing="false"
+                              onAction="#abrirLocalSave"
+                              styleClass="menu-item-largo"
+                              text="Save Local"/>
                 </items>
             </MenuButton>
         </ToolBar>
@@ -29,9 +42,9 @@
         <HBox spacing="20"
               styleClass="main-hbox">
             <children>
-                <VBox spacing="10.0"
+                <VBox minWidth="350.0"
                       prefWidth="350.0"
-                      minWidth="350.0">
+                      spacing="10.0">
                     <children>
                         <TextField fx:id="txtBusca"
                                    promptText="🔎 Buscar por título ou autor..."/>
@@ -41,9 +54,9 @@
                 </VBox>
 
                 <VBox fx:id="containerDetalhes"
-                      HBox.hgrow="ALWAYS"
                       spacing="15.0"
-                      styleClass="details-pane">
+                      styleClass="details-pane"
+                      HBox.hgrow="ALWAYS">
                     <children>
                         <Label fx:id="labelTitulo"
                                text="Selecione um livro"
@@ -85,6 +98,13 @@
                                            GridPane.columnIndex="1"
                                            GridPane.rowIndex="4"/>
                             </children>
+                            <rowConstraints>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                            </rowConstraints>
                         </GridPane>
                         <HBox spacing="20"
                               VBox.vgrow="ALWAYS">

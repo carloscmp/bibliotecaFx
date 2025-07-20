@@ -123,3 +123,7 @@
     -fx-background-color: #454545;
     -fx-border-color: #555555;
 }
+
+.menu-item-largo {
+    -fx-pref-width: 180px; /* Defina a largura desejada aqui */
+}

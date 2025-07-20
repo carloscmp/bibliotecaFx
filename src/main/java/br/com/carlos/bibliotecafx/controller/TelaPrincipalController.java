@@ -4,6 +4,7 @@ import br.com.carlos.bibliotecafx.config.ConfigUtil;
 import br.com.carlos.bibliotecafx.http.HttpUtil;
 import br.com.carlos.bibliotecafx.model.AcaoPendente;
 import br.com.carlos.bibliotecafx.model.LivroFx;
+import br.com.carlos.bibliotecafx.persistence.AppDataUtil;
 import br.com.carlos.bibliotecafx.persistence.FilaSincronizacao;
 import br.com.carlos.bibliotecafx.persistence.GerenciadorDadosLocal;
 import br.com.carlos.bibliotecafx.service.ServicoSincronizacao;
@@ -20,6 +21,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -29,6 +33,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -189,6 +195,36 @@ public class TelaPrincipalController {
         }
         listaLivros.getSelectionModel()
                    .clearSelection();
+    }
+
+    @FXML
+    private void abrirLocalSave() {
+        // Verifica se a funcionalidade de Desktop é suportada pelo sistema atual.
+        if (Desktop.isDesktopSupported()) {
+            try {
+                // 1. Obtém o caminho para a pasta de dados usando a nossa AppDataUtil.
+                File saveDirectory = AppDataUtil.getAppDataDirectory()
+                                                .toFile();
+
+                // 2. Garante que o diretório realmente existe antes de tentar abri-lo.
+                if (saveDirectory.exists()) {
+                    System.out.println("Abrindo diretório: " + saveDirectory.getAbsolutePath());
+                    // 3. Dá a ordem para o sistema operativo abrir a pasta.
+                    Desktop.getDesktop()
+                           .open(saveDirectory);
+                } else {
+                    System.err.println("O diretório de salvamento não existe: " + saveDirectory.getAbsolutePath());
+                    DialogUtil.showError("Erro", "O diretório de salvamento ainda não foi criado.");
+                }
+            } catch (IOException e) {
+                System.err.println("Falha ao tentar abrir o diretório de salvamento.");
+                e.printStackTrace();
+                DialogUtil.showError("Erro", "Não foi possível abrir a pasta de salvamento.", e.getMessage());
+            }
+        } else {
+            System.err.println("A funcionalidade Desktop não é suportada neste sistema.");
+            DialogUtil.showWarning("Funcionalidade Indisponível", "Não é possível abrir pastas automaticamente neste sistema operativo.");
+        }
     }
 
     private void iniciarServicoDeSincronizacao() {
